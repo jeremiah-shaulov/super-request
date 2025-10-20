@@ -18,7 +18,12 @@ export class SuperBlob extends Blob
 	override async arrayBuffer()
 	{	const body = 'getReaderWhenReady' in this.#body ? this.#body : RdStream.from(this.#body);
 		const data = await body.bytes();
-		return data.buffer;
+		if (data.byteLength == data.buffer.byteLength)
+		{	return data.buffer;
+		}
+		else
+		{	return data.slice().buffer;
+		}
 	}
 
 	override bytes()
@@ -55,7 +60,12 @@ export class SuperFile extends File
 	override async arrayBuffer()
 	{	const body = 'getReaderWhenReady' in this.#body ? this.#body : RdStream.from(this.#body);
 		const data = await body.bytes();
-		return data.buffer;
+		if (data.byteLength == data.buffer.byteLength)
+		{	return data.buffer;
+		}
+		else
+		{	return data.slice().buffer;
+		}
 	}
 
 	override bytes()
