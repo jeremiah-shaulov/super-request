@@ -1,4 +1,4 @@
-import {SuperCookies, CookieError} from '../cookies.ts';
+import {SuperCookies, CookieError} from '../super_cookies.ts';
 import {assertEquals, assert} from './deps.ts';
 
 function getSetCookie(cookies: SuperCookies): string[]

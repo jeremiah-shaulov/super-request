@@ -42,6 +42,6 @@
  **/
 
 export {SuperUrl} from './private/super_url.ts';
-export {SuperCookies, type CookieOptions, CookieError} from './private/cookies.ts';
+export {SuperCookies, type CookieOptions, CookieError} from './private/super_cookies.ts';
 export {SuperFile, SuperBlob} from './private/super_file.ts';
 export {SuperRequest, type SuperRequestInit, type SuperRequestOptions, TooBigError} from './private/super_request.ts';

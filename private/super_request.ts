@@ -1,6 +1,6 @@
 import {Iconv, RdStream} from './deps.ts';
 import {parseContentType} from './content_type.ts';
-import {SuperCookies} from './cookies.ts';
+import {SuperCookies} from './super_cookies.ts';
 import {FormDataEntry, parseFormData} from './form_data.ts';
 import {parseFormUrlencoded} from './form_url_encoded.ts';
 import {SuperBlob} from './super_file.ts';
