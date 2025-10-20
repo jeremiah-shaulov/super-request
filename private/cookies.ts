@@ -46,6 +46,9 @@ export type CookieOptions =
 {	expires?: Date,
 	maxAge?: number,
 	domain?: string,
+
+	/**	@default "/"
+	 **/
 	path?: string,
 	secure?: boolean,
 	httpOnly?: boolean,
@@ -70,12 +73,17 @@ export class SuperCookies extends Map<string, string>
 	/**	Creates a Cookies object by parsing the given "Cookie" header.
 		@param cookieHeader The value of the "Cookie" header from an HTTP request.
 	 **/
-	constructor(cookieHeader: string|null)
+	constructor(cookieHeader?: string|null)
 	{	super();
 		parseCookieHeader(cookieHeader, this.#orig, this);
 	}
 
 	/**	Sets a cookie value with optional parameters.
+
+		Setting a cookie with an empty value will result in deleting it.
+
+		Default path option is "/".
+
 		@param name The cookie name.
 		@param value The cookie value.
 		@param options Optional cookie parameters (expires, maxAge, domain, path, secure, httpOnly, sameSite).
@@ -83,7 +91,16 @@ export class SuperCookies extends Map<string, string>
 	override set(name: string, value: string, options?: CookieOptions)
 	{	super.set(name, value);
 		if (options)
-		{	this.#options.set(name, options);
+		{	if (options.domain && options.domain.indexOf(';')!=-1)
+			{	throw new CookieError('Domain name in cookie cannot contain semicolon');
+			}
+			if (options.path && options.path.indexOf(';')!=-1)
+			{	throw new CookieError('Path in cookie cannot contain semicolon');
+			}
+			if (options.sameSite && options.sameSite.indexOf(';')!=-1)
+			{	throw new CookieError('SameSite in cookie must be one of: Strict, Lax, None');
+			}
+			this.#options.set(name, options);
 		}
 		return this;
 	}
@@ -101,7 +118,7 @@ export class SuperCookies extends Map<string, string>
 	}
 }
 
-function parseCookieHeader(cookieHeader: string|null, cookiesOrig: Map<string, {rawName: string, value: string}>, cookies: Map<string, string>)
+function parseCookieHeader(cookieHeader: string|null|undefined, cookiesOrig: Map<string, {rawName: string, value: string}>, cookies: Map<string, string>)
 {	if (cookieHeader)
 	{	let i = 0;
 		while (i < cookieHeader.length)
@@ -139,7 +156,7 @@ function applyToResponse(response: {headers?: Headers|HeadersInit}, cookiesOrig:
 			{	headers = new Headers(response.headers && Object.entries(response.headers));
 				response.headers = headers;
 			}
-			headers.append('Set-Cookie', `${rawName}=; Path=/; Expires=Thu, 01 Jan 1970 00:00:00 GMT`);
+			headers.append('Set-Cookie', `${rawName}=; Path=/; Expires=Sat, 01 Jan 2000 00:00:00 GMT`);
 		}
 	}
 	for (const [name, value] of cookies)
@@ -155,32 +172,34 @@ function applyToResponse(response: {headers?: Headers|HeadersInit}, cookiesOrig:
 			}
 			if (orig && orig.rawName!==name)
 			{	// the name has changed - delete the old cookie
-				headers.append('Set-Cookie', `${orig.rawName}=; Path=/; Expires=Thu, 01 Jan 1970 00:00:00 GMT`);
+				headers.append('Set-Cookie', `${orig.rawName}=; Expires=Sat, 01 Jan 2000 00:00:00 GMT; Max-Age=0; Path=/`);
 			}
 			let str = `${encodeCookie(name, COOKIE_NAME_MASK)}=${encodeCookie(value, COOKIE_VALUE_MASK)}`;
 			const option = options.get(name);
 			if (option)
 			{	let {expires, maxAge, domain, path, secure, httpOnly, sameSite} = option;
-				if (maxAge != undefined)
-				{	expires = new Date(Date.now() + maxAge*1000);
+				if (!value)
+				{	str += `; Expires=Sat, 01 Jan 2000 00:00:00 GMT; Max-Age=0`;
 				}
-				else if (expires)
-				{	maxAge = Math.ceil((expires.getTime() - Date.now()) / 1000);
-				}
-				if (expires)
-				{	str += `; Expires=${expires.toUTCString()}; Max-Age=${maxAge}`;
+				else
+				{	if (maxAge != undefined)
+					{	expires = new Date(Date.now() + maxAge*1000);
+					}
+					else if (expires)
+					{	maxAge = Math.ceil((expires.getTime() - Date.now()) / 1000);
+					}
+					if (expires)
+					{	str += `; Expires=${expires.toUTCString()}; Max-Age=${maxAge}`;
+					}
 				}
 				if (domain)
-				{	if (domain.indexOf(';') != -1)
-					{	throw new CookieError('Domain name in cookie cannot contain semicolon');
-					}
-					str += `; Domain=${domain}`;
+				{	str += `; Domain=${domain}`;
 				}
-				if (path)
-				{	if (path.indexOf(';') != -1)
-					{	throw new CookieError('Path in cookie cannot contain semicolon');
-					}
-					str += `; Path=${path}`;
+				if (path == undefined)
+				{	str += `; Path=/`;
+				}
+				else if (path)
+				{	str += `; Path=${path}`;
 				}
 				if (secure)
 				{	str += `; Secure`;
@@ -189,11 +208,11 @@ function applyToResponse(response: {headers?: Headers|HeadersInit}, cookiesOrig:
 				{	str += `; HttpOnly`;
 				}
 				if (sameSite)
-				{	if (sameSite.indexOf(';') != -1)
-					{	throw new CookieError('SameSite in cookie must be one of: Strict, Lax, None');
-					}
-					str += `; SameSite=${sameSite}`;
+				{	str += `; SameSite=${sameSite}`;
 				}
+			}
+			else if (!value)
+			{	str += `; Expires=Sat, 01 Jan 2000 00:00:00 GMT; Max-Age=0; Path=/`;
 			}
 			headers.append('Set-Cookie', str);
 		}
@@ -203,7 +222,7 @@ function applyToResponse(response: {headers?: Headers|HeadersInit}, cookiesOrig:
 function encodeCookie(value: string, mask: Uint8Array)
 {	for (let i=0, iEnd=value.length; i<iEnd; i++)
 	{	let c = value.charCodeAt(i);
-		if (c<=127 && mask[c]===1)
+		if (c>=128 || mask[c]===1)
 		{	// there's invalid char at "i"
 			let newValue = value.slice(0, i); // cannot return "value" as is, so create "newValue"
 			while (i < iEnd)
@@ -211,7 +230,7 @@ function encodeCookie(value: string, mask: Uint8Array)
 				let from = i;
 				for (i++; i<iEnd; i++)
 				{	c = value.charCodeAt(i);
-					if (c>127 || mask[c]!==1)
+					if (!(c>=128 || mask[c]===1))
 					{	break;
 					}
 				}
@@ -220,7 +239,7 @@ function encodeCookie(value: string, mask: Uint8Array)
 				from = i;
 				for (i++; i<iEnd; i++)
 				{	c = value.charCodeAt(i);
-					if (c<=127 && mask[c]===1)
+					if (c>=128 || mask[c]===1)
 					{	break;
 					}
 				}
