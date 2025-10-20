@@ -156,7 +156,7 @@ function applyToResponse(response: {headers?: Headers|HeadersInit}, cookiesOrig:
 			{	headers = new Headers(response.headers && Object.entries(response.headers));
 				response.headers = headers;
 			}
-			headers.append('Set-Cookie', `${rawName}=; Path=/; Expires=Sat, 01 Jan 2000 00:00:00 GMT`);
+			headers.append('set-cookie', `${rawName}=; Path=/; Expires=Sat, 01 Jan 2000 00:00:00 GMT`);
 		}
 	}
 	for (const [name, value] of cookies)
@@ -172,7 +172,7 @@ function applyToResponse(response: {headers?: Headers|HeadersInit}, cookiesOrig:
 			}
 			if (orig && orig.rawName!==name)
 			{	// the name has changed - delete the old cookie
-				headers.append('Set-Cookie', `${orig.rawName}=; Expires=Sat, 01 Jan 2000 00:00:00 GMT; Max-Age=0; Path=/`);
+				headers.append('set-cookie', `${orig.rawName}=; Expires=Sat, 01 Jan 2000 00:00:00 GMT; Max-Age=0; Path=/`);
 			}
 			let str = `${encodeCookie(name, COOKIE_NAME_MASK)}=${encodeCookie(value, COOKIE_VALUE_MASK)}`;
 			const option = options.get(name);
@@ -214,7 +214,7 @@ function applyToResponse(response: {headers?: Headers|HeadersInit}, cookiesOrig:
 			else if (!value)
 			{	str += `; Expires=Sat, 01 Jan 2000 00:00:00 GMT; Max-Age=0; Path=/`;
 			}
-			headers.append('Set-Cookie', str);
+			headers.append('set-cookie', str);
 		}
 	}
 }
