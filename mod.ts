@@ -2,7 +2,7 @@
 
 	Provides extended versions of standard web API classes, that simplify web request handling.
 
-	## Main Classes
+	## Classes
 
 	### {@link SuperRequest}
 	An extended version of the standard {@link https://developer.mozilla.org/en-US/docs/Web/API/Request Request}
@@ -38,7 +38,7 @@
 	### {@link SuperFile} and {@link SuperBlob}
 	File and Blob implementations that use ReadableStreams as data sources.
 
-	@module mod_super_request
+	@module
  **/
 
 export {SuperUrl} from './private/super_url.ts';
