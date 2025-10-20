@@ -5,6 +5,7 @@ export type SearchParam = string | {[key: string]: SearchParam} | SearchParam[];
  **/
 export class SuperUrl extends URL
 {	#json: Record<string, SearchParam>|undefined;
+	#jsonFor: string|undefined;
 
 	/**	Returns the URL search parameters parsed into a JavaScript object.
 
@@ -20,32 +21,19 @@ export class SuperUrl extends URL
 		Objects and arrays can be nested. For example, "items[a][b][]=val0&items[a][b][]=val1" will be parsed as `{items: {a: {b: ["val0", "val1"]}}}`.
 	 **/
 	get searchParamsJson()
-	{	if (this.#json == undefined)
-		{	this.#json = parseSearchParamsJson(this.search, 1);
+	{	const queryString = this.search;
+		if (this.#jsonFor !== queryString)
+		{	this.#jsonFor = queryString;
+			this.#json = parseSearchParamsJson(this.searchParams);
 		}
 		return this.#json;
 	}
 }
 
-function parseSearchParamsJson(queryString: string, i=0)
+function parseSearchParamsJson(searchParams: URLSearchParams)
 {	const obj: Record<string, SearchParam> = {};
-	while (i < queryString.length)
-	{	let iEnd = queryString.indexOf('&', i);
-		if (iEnd == -1)
-		{	iEnd = queryString.length;
-		}
-		const eq = queryString.indexOf('=', i);
-		let name;
-		let value = '';
-		if (eq<iEnd && eq!=-1)
-		{	name = decodeURIComponent(queryString.slice(i, eq));
-			value = decodeURIComponent(queryString.slice(eq+1, iEnd));
-		}
-		else
-		{	name = decodeURIComponent(queryString.slice(i, iEnd));
-		}
-		setSearchParamJson(obj, name, value);
-		i = iEnd + 1;
+	for (const [name, value] of searchParams)
+	{	setSearchParamJson(obj, name, value);
 	}
 	return obj;
 }
