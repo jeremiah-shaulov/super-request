@@ -448,7 +448,10 @@ export class SuperRequest extends Request
 		this.#bodyUsed = true;
 		const body = this.#getBodyStream();
 		const data = await body.bytes();
-		return data.buffer as ArrayBuffer;
+		if (data.byteOffset==0 && data.byteLength==data.buffer.byteLength)
+		{	return data.buffer;
+		}
+		return data.buffer.slice(data.byteOffset, data.byteOffset+data.byteLength);
 	}
 
 	override text()
