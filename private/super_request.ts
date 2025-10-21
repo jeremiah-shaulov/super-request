@@ -30,6 +30,8 @@ export class TooBigError extends Error
 
 /**	This class extends the standard Request class to add additional features.
 	It can be constructed from an existing Request object or any other way like the standard Request.
+	It also supports `Reader` body type in the constructor (objects that have a `read(buffer)` method, like `Deno.FsFile`).
+	Such body type is more efficient, because it doesn't require copying data into intermediate buffers.
 
 	The additional features are:
 	- Maximum request body size limit, configurable via the {@link SuperRequestOptions.lengthLimit lengthLimit} option.
