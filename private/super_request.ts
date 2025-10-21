@@ -432,7 +432,7 @@ export class SuperRequest extends Request
 			return Promise.resolve(encoded);
 		}
 		if (bodyInit instanceof URLSearchParams)
-		{	const encoded = encoder.encode(bodyInit+'') as Uint8Array<ArrayBuffer>;
+		{	const encoded = encoder.encode(bodyInit+'');
 			if (encoded.byteLength > this.#lengthLimit)
 			{	throw new TooBigError('Request body is too large');
 			}
@@ -451,7 +451,7 @@ export class SuperRequest extends Request
 			return Promise.resolve(new Uint8Array(bodyInit.buffer, bodyInit.byteOffset, bodyInit.byteLength));
 		}
 		const body = this.#getBodyStream();
-		return body.bytes() as Promise<Uint8Array<ArrayBuffer>>;
+		return body.bytes();
 	}
 
 	override async arrayBuffer(): Promise<ArrayBuffer>
