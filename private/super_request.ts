@@ -463,7 +463,7 @@ export class SuperRequest extends Request
 			return Promise.resolve(encoded);
 		}
 		if (bodyInit instanceof URLSearchParams)
-		{	const encoded = encoder.encode(bodyInit+'');
+		{	const encoded = encoder.encode(bodyInit+'') as Uint8Array<ArrayBuffer>;
 			if (encoded.byteLength > this.#lengthLimit)
 			{	throw new TooBigError('Request body is too large');
 			}
@@ -479,7 +479,7 @@ export class SuperRequest extends Request
 		{	if (bodyInit.byteLength > this.#lengthLimit)
 			{	throw new TooBigError('Request body is too large');
 			}
-			return Promise.resolve(new Uint8Array(bodyInit.buffer, bodyInit.byteOffset, bodyInit.byteLength));
+			return Promise.resolve(new Uint8Array(bodyInit.buffer as ArrayBuffer, bodyInit.byteOffset, bodyInit.byteLength));
 		}
 		const body = this.#getBodyStream();
 		return body.bytes();
