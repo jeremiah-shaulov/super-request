@@ -69,7 +69,7 @@ export class SuperRequest extends Request
 	}
 
 	override get body()
-	{	return!this.#bodyInit==null ? null : this.#getBodyStream() as ReadableStream<Uint8Array<ArrayBuffer>>;
+	{	return this.#bodyInit==null ? null : this.#getBodyStream() as ReadableStream<Uint8Array<ArrayBuffer>>;
 	}
 
 	override get bodyUsed()
