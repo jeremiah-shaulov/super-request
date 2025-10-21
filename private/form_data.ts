@@ -3,6 +3,7 @@ import {SuperFile} from './super_file.ts';
 
 const BUFFER_LEN = 32*1024; // max length for header line is BUFFER_LEN/2. an example of header line is: `Content-Disposition: form-data; name="image"; filename="/tmp/current_file"`
 const MAX_BOUNDARY_LEN = 100;
+const MAX_DECORATOR_LEN = 100; // the decorator is "\r\n------" (with unspecified number of dashes) that precedes boundary
 
 const C_EQ = '='.charCodeAt(0);
 const C_COLON = ':'.charCodeAt(0);
@@ -124,7 +125,7 @@ export async function *parseFormData(body: RdStream, charset: string|undefined, 
 				if (buffer[i] !== C_CR)
 				{	throw new Error('Invalid header'); // line starts with ":" or "\n"
 				}
-				// At "\r" that hopefully is followed by "\n"
+				// At "\r" that is hopefully followed by "\n"
 				i++; // to "\n"
 				if (i >= bufferEnd)
 				{	bufferStart = bufferEnd = i = 0;
@@ -165,11 +166,12 @@ export async function *parseFormData(body: RdStream, charset: string|undefined, 
 					while (true)
 					{	i = bufferIndexOf(useBuffer, scanFrom, bufferEnd-2, boundaryBytes); // ensure there are 2 bytes after boundary for "\r\n" or "--"
 						if (i != -1)
-						{	let endField = useBuffer.subarray(scanFrom, i).lastIndexOf(C_CR); // actually value terminates "\r\n"+boundary
+						{	const scanDecoratorFrom = Math.max(bufferStart, scanFrom-MAX_DECORATOR_LEN);
+							let endField = useBuffer.subarray(scanDecoratorFrom, i).lastIndexOf(C_CR); // actually value terminates "\r\n"+boundary
 							if (endField == -1)
 							{	throw new Error('Invalid multipart body'); // no "\r\n" after value and before boundary
 							}
-							endField += scanFrom;
+							endField += scanDecoratorFrom;
 							expectedEof = useBuffer[i + boundaryBytes.length]===C_HYPHEN && useBuffer[i + boundaryBytes.length + 1]===C_HYPHEN;
 							let result = useBuffer.subarray(bufferStart, endField);
 							bufferStart = i + boundaryBytes.length + 2; // boundary.length + "\r\n".length; or: boundary.length + "--".length
@@ -190,9 +192,10 @@ export async function *parseFormData(body: RdStream, charset: string|undefined, 
 							return result;
 						}
 						scanFrom = Math.max(bufferStart, bufferEnd - 2 - boundaryBytes.length);
-						if (view && scanFrom-bufferStart>=view.length) // if data in buffer can fill the whole "view"
+						const canReturnTo = scanFrom - MAX_DECORATOR_LEN;
+						if (view && canReturnTo-bufferStart>=view.length) // if data in buffer can fill the whole "view"
 						{	// Return it without reading more
-							const to = Math.min(scanFrom, bufferStart+view.length);
+							const to = Math.min(canReturnTo, bufferStart+view.length);
 							const result = useBuffer.subarray(bufferStart, to);
 							bufferStart = to;
 							if (useBuffer != view)
@@ -212,10 +215,10 @@ export async function *parseFormData(body: RdStream, charset: string|undefined, 
 							bufferEnd -= bufferStart;
 							bufferStart = 0;
 						}
-						else if ((scanFrom-bufferStart)*2 >= useBuffer.length) // if data in buffer is more than half of buffer length
+						else if ((canReturnTo-bufferStart)*2 >= useBuffer.length) // if data in buffer is more than half of buffer length
 						{	// Return it without reading more
-							const result = useBuffer.subarray(bufferStart, scanFrom);
-							bufferStart = scanFrom;
+							const result = useBuffer.subarray(bufferStart, canReturnTo);
+							bufferStart = canReturnTo;
 							if (useBuffer != view)
 							{	view?.set(result);
 							}
@@ -234,7 +237,6 @@ export async function *parseFormData(body: RdStream, charset: string|undefined, 
 							bufferStart = 0;
 						}
 						await read(useBuffer);
-						i = Math.max(bufferStart, bufferEnd - boundaryBytes.length + 1);
 					}
 				}
 
@@ -352,7 +354,17 @@ export async function *parseFormData(body: RdStream, charset: string|undefined, 
 			else if (headerName == 'content-type')
 			{	contentTypeFull = decoder.decode(bufferTrim(buffer.subarray(bufferStart, i)));
 			}
-			bufferStart = i + 2; // after "\r\n"
+			// At "\r" that is hopefully followed by "\n"
+			i++; // to "\n"
+			if (i >= bufferEnd)
+			{	bufferStart = bufferEnd = i = 0;
+				await read(buffer);
+			}
+			if (buffer[i] !== C_LF)
+			{	throw new Error('Invalid header'); // no "\n" follows "\r"
+			}
+			i++; // after "\r\n"
+			bufferStart = i;
 			headerName = '';
 			state = State.HEADER;
 		}
@@ -416,4 +428,3 @@ function bufferTrim(buffer: Uint8Array)
 	}
 	return buffer.subarray(start, end);
 }
-
