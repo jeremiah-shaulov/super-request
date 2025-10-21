@@ -59,6 +59,7 @@ export class SuperRequest extends Request
 	 **/
 	#bodyJson: Record<string, SearchParam> | undefined;
 	#bodyIterator: AsyncGenerator<FormDataEntry, void, unknown> | undefined;
+	#formDataIterator: Iterator<[string, FormDataEntryValue]> | undefined;
 
 	#bodyFormData: FormData|undefined;
 
@@ -270,8 +271,15 @@ export class SuperRequest extends Request
 		{	this.#bodyUsed = true;
 			this.#bodyJson ??= {}; // currently it's not known what method the user will call: formData() or json(), so ne prepared for both
 			this.#bodyFormData ??= new FormData;
-			for (const [name, value] of this.#bodyInit)
-			{	if (value instanceof File)
+			this.#formDataIterator ??= this.#bodyInit.entries();
+			while (true)
+			{	const {value: item, done} = this.#formDataIterator.next();
+				if (done)
+				{	this.#formDataIterator = undefined;
+					break;
+				}
+				const [name, value] = item;
+				if (value instanceof File)
 				{	return {name, value};
 				}
 				else
