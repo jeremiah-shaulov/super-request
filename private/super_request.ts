@@ -16,7 +16,7 @@ type ReaderSource =
 
 type SuperBodyInit = BodyInit | ReaderSource;
 
-export type SuperRequestInit = RequestInit & {body?: SuperBodyInit|null};
+export type SuperRequestInit = Omit<RequestInit, 'body'> & {body?: SuperBodyInit|null};
 
 export type SuperRequestOptions =
 {	lengthLimit?: number;
@@ -64,7 +64,7 @@ export class SuperRequest extends Request
 	#bodyFormData: FormData|undefined;
 
 	constructor(input: RequestInfo, init?: SuperRequestInit, options?: SuperRequestOptions)
-	{	super(input, !init?.body ? init : {...init, body: null});
+	{	super(input, !init?.body ? init as RequestInit : {...init, body: null});
 		this.#bodyInit = init?.body ?? (typeof(input)=='string' ? null : input.body);
 		this.#lengthLimit = options?.lengthLimit ?? Number.MAX_SAFE_INTEGER;
 	}
