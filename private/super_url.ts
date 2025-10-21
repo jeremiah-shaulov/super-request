@@ -26,7 +26,7 @@ export class SuperUrl extends URL
 		{	this.#jsonFor = queryString;
 			this.#json = parseSearchParamsJson(this.searchParams);
 		}
-		return this.#json;
+		return this.#json!;
 	}
 }
 
