@@ -6,6 +6,8 @@ import {parseFormUrlencoded} from './form_url_encoded.ts';
 import {SuperBlob} from './super_file.ts';
 import {SearchParam, setSearchParamJson, SuperUrl} from './super_url.ts';
 
+const RE_HAS_SCHEME = /^[a-zA-Z][a-zA-Z0-9.+-]*:\/\//;
+
 const encoder = new TextEncoder;
 const decoder = new TextDecoder;
 
@@ -79,7 +81,7 @@ export class SuperRequest extends Request
 
 	get urlUrl()
 	{	if (!this.#urlUrl)
-		{	this.#urlUrl = new SuperUrl(this.url, 'http://localhost');
+		{	this.#urlUrl = new SuperUrl(this.url, this.#getUrlBase());
 		}
 		return this.#urlUrl;
 	}
@@ -103,6 +105,20 @@ export class SuperRequest extends Request
 		{	this.#cookies = new SuperCookies(this.headers.get('cookie'));
 		}
 		return this.#cookies;
+	}
+
+	#getUrlBase()
+	{	if (!RE_HAS_SCHEME.test(this.url))
+		{	const origin = this.headers.get('origin');
+			if (origin)
+			{	return origin;
+			}
+			const host = this.headers.get('host');
+			if (host)
+			{	return `http://${host}`;
+			}
+			return 'http://localhost';
+		}
 	}
 
 	#getBodyStream()
