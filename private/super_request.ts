@@ -124,8 +124,15 @@ export class SuperRequest extends Request
 						);
 						this.#bodyUsed = true;
 						if (!reader)
-						{	reader = bodyStream.getReader({mode: 'byob'});
+						{	try
+							{	reader = bodyStream.getReader({mode: 'byob'});
+							}
+							catch
+							{	bodyStream = RdStream.from(bodyStream);
+								reader = bodyStream.getReader({mode: 'byob'});
+							}
 						}
+
 						if (!readBuffer || readBuffer.byteLength<buffer.byteLength)
 						{	readBuffer = new Uint8Array(buffer.buffer.byteLength);
 						}
