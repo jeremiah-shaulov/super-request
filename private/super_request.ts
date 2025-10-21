@@ -425,16 +425,30 @@ export class SuperRequest extends Request
 		}
 		this.#bodyUsed = true;
 		if (typeof(bodyInit) == 'string')
-		{	return Promise.resolve(Iconv.encode(bodyInit, this.#charset || 'utf-8') as Uint8Array<ArrayBuffer>);
+		{	const encoded = Iconv.encode(bodyInit, this.#charset || 'utf-8') as Uint8Array<ArrayBuffer>;
+			if (encoded.byteLength > this.#lengthLimit)
+			{	throw new TooBigError('Request body is too large');
+			}
+			return Promise.resolve(encoded);
 		}
 		if (bodyInit instanceof URLSearchParams)
-		{	return Promise.resolve(encoder.encode(bodyInit+'') as Uint8Array<ArrayBuffer>);
+		{	const encoded = encoder.encode(bodyInit+'') as Uint8Array<ArrayBuffer>;
+			if (encoded.byteLength > this.#lengthLimit)
+			{	throw new TooBigError('Request body is too large');
+			}
+			return Promise.resolve(encoded);
 		}
 		if (bodyInit instanceof ArrayBuffer)
-		{	return Promise.resolve(new Uint8Array(bodyInit));
+		{	if (bodyInit.byteLength > this.#lengthLimit)
+			{	throw new TooBigError('Request body is too large');
+			}
+			return Promise.resolve(new Uint8Array(bodyInit));
 		}
 		if (ArrayBuffer.isView(bodyInit))
-		{	return Promise.resolve(new Uint8Array(bodyInit.buffer, bodyInit.byteOffset, bodyInit.byteLength));
+		{	if (bodyInit.byteLength > this.#lengthLimit)
+			{	throw new TooBigError('Request body is too large');
+			}
+			return Promise.resolve(new Uint8Array(bodyInit.buffer, bodyInit.byteOffset, bodyInit.byteLength));
 		}
 		const body = this.#getBodyStream();
 		return body.bytes() as Promise<Uint8Array<ArrayBuffer>>;
@@ -461,16 +475,31 @@ export class SuperRequest extends Request
 		}
 		this.#bodyUsed = true;
 		if (typeof(bodyInit) == 'string')
-		{	return Promise.resolve(bodyInit);
+		{	if (encoder.encode(bodyInit).length > this.#lengthLimit)
+			{	throw new TooBigError('Request body is too large');
+			}
+			return Promise.resolve(bodyInit);
 		}
 		if (bodyInit instanceof URLSearchParams)
-		{	return Promise.resolve(bodyInit+'');
+		{	const str = bodyInit+'';
+			if (encoder.encode(str).length > this.#lengthLimit)
+			{	throw new TooBigError('Request body is too large');
+			}
+			return Promise.resolve(str);
 		}
+		// Parse content type to get charset
+		this.#parseContentType();
 		if (bodyInit instanceof ArrayBuffer)
-		{	return Promise.resolve(!this.#charset ? decoder.decode(bodyInit) : Iconv.decode(new Uint8Array(bodyInit), this.#charset));
+		{	if (bodyInit.byteLength > this.#lengthLimit)
+			{	throw new TooBigError('Request body is too large');
+			}
+			return Promise.resolve(!this.#charset ? decoder.decode(bodyInit) : Iconv.decode(new Uint8Array(bodyInit), this.#charset));
 		}
 		if (ArrayBuffer.isView(bodyInit))
 		{	const view = new Uint8Array(bodyInit.buffer, bodyInit.byteOffset, bodyInit.byteLength);
+			if (view.byteLength > this.#lengthLimit)
+			{	throw new TooBigError('Request body is too large');
+			}
 			return Promise.resolve(!this.#charset ? decoder.decode(view) : Iconv.decode(view, this.#charset));
 		}
 		const body = this.#getBodyStream();
