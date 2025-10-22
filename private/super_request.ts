@@ -1,10 +1,10 @@
 import {Iconv, RdStream} from './deps.ts';
 import {parseContentType} from './content_type.ts';
 import {SuperCookies} from './super_cookies.ts';
-import {FormDataEntry, parseFormData} from './form_data.ts';
+import {type FormDataEntry, parseFormData} from './form_data.ts';
 import {parseFormUrlencoded} from './form_url_encoded.ts';
 import {SuperBlob} from './super_file.ts';
-import {SearchParam, setSearchParamJson, SuperUrl} from './super_url.ts';
+import {type SearchParam, setSearchParamJson, SuperUrl} from './super_url.ts';
 
 const RE_HAS_SCHEME = /^[a-zA-Z][a-zA-Z0-9.+-]*:\/\//;
 
