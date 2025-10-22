@@ -3,7 +3,7 @@
 [Documentation Index](../README.md)
 
 ```ts
-import {CookieError} from "jsr:@shaulov/super-request@0.1.1"
+import {CookieError} from "jsr:@shaulov/super-request@0.1.2"
 ```
 
 ## This class has

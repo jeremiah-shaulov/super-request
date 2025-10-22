@@ -8,7 +8,7 @@
 	An extended version of the standard {@link https://developer.mozilla.org/en-US/docs/Web/API/Request Request}
 	class with additional features:
 	- Configurable maximum request body size limit. Allows to automatically cancel the body stream if the limit is exceeded, and throw error.
-	- The object can be constructed from the same body types as regular `Request`, including `ReadableStream`, string, and so on, plus from "Reader" interface (objects, that have a `read(buffer)` method, like `Deno.FsFile`). This interface is more efficient, because it doesn't require copying data into intermediate buffers.
+	- The object can be constructed from the same body types as regular `Request`, including `ReadableStream`, string, and so on, plus from "Reader" interface (objects, that have a `read(buffer)` method, like `Deno.TcpConn`). This interface is more efficient, because it doesn't require copying data into intermediate buffers.
 	- Enhanced request URL accessor via {@link SuperUrl} class, which allows to get URL parameters as a JavaScript object,
 	that contains parameter names and values, and the values can be nested arrays and objects.
 	Parameter parsing is similar to how PHP parses query strings.

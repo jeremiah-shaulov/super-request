@@ -3,7 +3,7 @@
 [Documentation Index](../README.md)
 
 ```ts
-import {SuperRequestOptions} from "jsr:@shaulov/super-request@0.1.1"
+import {SuperRequestOptions} from "jsr:@shaulov/super-request@0.1.2"
 ```
 
 ## This type has

@@ -3,7 +3,7 @@
 [Documentation Index](../README.md)
 
 ```ts
-import {SuperUrl} from "jsr:@shaulov/super-request@0.1.1"
+import {SuperUrl} from "jsr:@shaulov/super-request@0.1.2"
 ```
 
 This class extends the standard URL class by adding a `searchParamsJson` property,
@@ -12,7 +12,7 @@ which contains the parsed URL parameters as a JavaScript object.
 ## This class has
 
 - [constructor](#-constructorurl-string--url-base-string--url)
-- property [searchParamsJson](#-get-searchparamsjson-record)
+- property [searchParamsJson](#-get-searchparamsjson-recordstring-searchparam)
 - base class
 
 
@@ -27,7 +27,7 @@ which contains the parsed URL parameters as a JavaScript object.
 
 
 
-#### 📄 `get` searchParamsJson(): Record
+#### 📄 `get` searchParamsJson(): Record\<`string`, SearchParam>
 
 > Returns the URL search parameters parsed into a JavaScript object.
 > 

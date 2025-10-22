@@ -1,6 +1,6 @@
 <!--
 	This file is generated with the following command:
-	deno run --allow-all https://raw.githubusercontent.com/jeremiah-shaulov/tsa/v0.0.53/tsa.ts doc-md --outFile=README.md --outUrl=https://raw.githubusercontent.com/jeremiah-shaulov/super-request/0.1.1/README.md --importUrl=jsr:@shaulov/super-request@0.1.1 mod.ts
+	deno run --allow-all https://raw.githubusercontent.com/jeremiah-shaulov/tsa/v0.0.55/tsa.ts doc-md --outFile=README.md --outUrl=https://raw.githubusercontent.com/jeremiah-shaulov/super-request/0.1.2/README.md --importUrl=jsr:@shaulov/super-request@0.1.2 mod.ts
 -->
 
 [Documentation Index](generated-doc/README.md)
@@ -12,10 +12,10 @@ Provides extended versions of standard web API classes, that simplify web reques
 ## Classes
 
 ### [SuperRequest](generated-doc/class.SuperRequest/README.md)
-An extended version of the standard [https://developer.mozilla.org/en-US/docs/Web/API/Request Request](https://developer.mozilla.org/en-US/docs/Web/API/Request%20Request)
+An extended version of the standard [Request](https://developer.mozilla.org/en-US/docs/Web/API/Request)
 class with additional features:
 - Configurable maximum request body size limit. Allows to automatically cancel the body stream if the limit is exceeded, and throw error.
-- The object can be constructed from the same body types as regular `Request`, including `ReadableStream`, string, and so on, plus from "Reader" interface (objects, that have a `read(buffer)` method, like `Deno.FsFile`). This interface is more efficient, because it doesn't require copying data into intermediate buffers.
+- The object can be constructed from the same body types as regular `Request`, including `ReadableStream`, string, and so on, plus from "Reader" interface (objects, that have a `read(buffer)` method, like `Deno.TcpConn`). This interface is more efficient, because it doesn't require copying data into intermediate buffers.
 - Enhanced request URL accessor via [SuperUrl](generated-doc/class.SuperUrl/README.md) class, which allows to get URL parameters as a JavaScript object,
 that contains parameter names and values, and the values can be nested arrays and objects.
 Parameter parsing is similar to how PHP parses query strings.
@@ -30,7 +30,7 @@ parsing the data into a JavaScript object using the same rules as for URL parame
 To handle files, you need to call the `files`() method before calling `formData()`.
 
 ### [SuperUrl](generated-doc/class.SuperUrl/README.md)
-An extended [https://developer.mozilla.org/en-US/docs/Web/API/URL URL](https://developer.mozilla.org/en-US/docs/Web/API/URL%20URL) class that adds `SuperUrl.searchParamsJson searchParamsJson` property
+An extended [URL](https://developer.mozilla.org/en-US/docs/Web/API/URL) class that adds [searchParamsJson](generated-doc/class.SuperUrl/README.md#-get-searchparamsjson-recordstring-searchparam) property
 for parsing URL parameters into JavaScript objects.
 This property supports array notation (e.g., `items[]=a&items[]=b` → `{items: ["a", "b"]}`),
 and object notation (e.g., `user[name]=John&user[age]=25` → `{user: {name: "John", age: "25"}}`).
@@ -41,7 +41,7 @@ Other properties and methods are the same as in the standard URL class.
 A Map-based cookie management class that:
 - Parses "Cookie" headers from HTTP requests
 - Allows modification of cookie values (with attributes, like expires, path, domain, etc.)
-- Provides `SuperCookies.applyToResponse applyToResponse()` method to set "Set-Cookie" headers on HTTP responses
+- Provides [applyToResponse()](generated-doc/class.SuperCookies/README.md#-applytoresponseresponse-headers-headers--headersinit-void) method to set "Set-Cookie" headers on HTTP responses
 
 ### [SuperFile](generated-doc/class.SuperFile/README.md) and [SuperBlob](generated-doc/class.SuperBlob/README.md)
 File and Blob implementations that use ReadableStreams as data sources.
