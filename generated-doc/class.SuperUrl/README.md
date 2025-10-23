@@ -3,7 +3,7 @@
 [Documentation Index](../README.md)
 
 ```ts
-import {SuperUrl} from "jsr:@shaulov/super-request@0.1.2"
+import {SuperUrl} from "jsr:@shaulov/super-request@0.1.3"
 ```
 
 This class extends the standard URL class by adding a `searchParamsJson` property,

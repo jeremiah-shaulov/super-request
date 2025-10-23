@@ -20,6 +20,6 @@
 
 
 
-| Classes                                    |                                            |
-| ------------------------------------------ | ------------------------------------------ |
-| [CookieError](class.CookieError/README.md) | [TooBigError](class.TooBigError/README.md) |
+| Classes                                    |                                            |                                            |
+| ------------------------------------------ | ------------------------------------------ | ------------------------------------------ |
+| [CancelError](class.CancelError/README.md) | [CookieError](class.CookieError/README.md) | [TooBigError](class.TooBigError/README.md) |

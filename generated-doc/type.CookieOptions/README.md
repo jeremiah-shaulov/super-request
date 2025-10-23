@@ -3,7 +3,7 @@
 [Documentation Index](../README.md)
 
 ```ts
-import {CookieOptions} from "jsr:@shaulov/super-request@0.1.2"
+import {CookieOptions} from "jsr:@shaulov/super-request@0.1.3"
 ```
 
 ## This type has
