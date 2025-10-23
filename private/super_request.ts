@@ -1,4 +1,4 @@
-import {Iconv, RdStream} from './deps.ts';
+import {CancelError, Iconv, RdStream} from './deps.ts';
 import {parseContentType} from './content_type.ts';
 import {SuperCookies} from './super_cookies.ts';
 import {type FormDataEntry, parseFormData} from './form_data.ts';
@@ -94,8 +94,29 @@ export class SuperRequest extends Request
 				body: null,
 			}
 		);
-		this.#bodyInit = init?.body ?? (typeof(input)=='string' ? null : input.body);
+		const bodyInit = init?.body ?? (typeof(input)=='string' ? null : input.body);
+		this.#bodyInit = bodyInit;
 		this.#lengthLimit = options?.lengthLimit ?? Number.MAX_SAFE_INTEGER;
+		if (signal && (bodyInit instanceof ReadableStream || bodyInit instanceof Blob))
+		{	signal.addEventListener
+			(	'abort',
+				() =>
+				{	let toCancel: ReadableStream<Uint8Array>|undefined;
+					if (this.#bodyStream)
+					{	toCancel = this.#bodyStream;
+					}
+					else if (bodyInit instanceof ReadableStream)
+					{	this.#bodyInit = null;
+						toCancel = bodyInit;
+					}
+					else
+					{	this.#bodyInit = null;
+						toCancel = bodyInit.stream();
+					}
+					toCancel.cancel(new CancelError('The operation was aborted')).catch(() => {});
+				}
+			);
+		}
 	}
 
 	override get body()
@@ -150,7 +171,8 @@ export class SuperRequest extends Request
 
 	#getBodyStream()
 	{	if (!this.#bodyStream)
-		{	let lengthLimit = this.#lengthLimit;
+		{	const {signal} = this;
+			let lengthLimit = this.#lengthLimit;
 			const bodyInit = this.#bodyInit;
 			if (bodyInit instanceof ReadableStream || bodyInit instanceof Blob || bodyInit instanceof FormData)
 			{	let bodyStream: ReadableStream<Uint8Array> | undefined;
@@ -159,8 +181,19 @@ export class SuperRequest extends Request
 				let readBuffer: Uint8Array|undefined;
 
 				this.#bodyStream = new RdStream
-				(	{	read: async buffer =>
-						{	bodyStream ??=
+				(	{	throwAfterCancel: true,
+
+						read: async buffer =>
+						{	// Check if the signal is aborted
+							if (signal.aborted)
+							{	const error = new CancelError('The operation was aborted');
+								if (reader)
+								{	await reader.cancel(error).catch(() => {});
+								}
+								throw error;
+							}
+
+							bodyStream ??=
 							(	bodyInit instanceof ReadableStream ?
 									bodyInit :
 								bodyInit instanceof Blob ?
@@ -235,8 +268,15 @@ export class SuperRequest extends Request
 				}
 
 				this.#bodyStream = new RdStream
-				(	{	read(buffer)
-						{	const n = Math.min(buffer.byteLength, data.byteLength);
+				(	{	throwAfterCancel: true,
+
+						read(buffer)
+						{	// Check if the signal is aborted
+							if (signal.aborted)
+							{	throw new CancelError('The operation was aborted');
+							}
+
+							const n = Math.min(buffer.byteLength, data.byteLength);
 							buffer.set(data.subarray(0, n));
 							data = data.subarray(n);
 							return n;
@@ -246,8 +286,15 @@ export class SuperRequest extends Request
 			}
 			else if ('read' in bodyInit)
 			{	this.#bodyStream = new RdStream
-				(	{	read: async buffer =>
-						{	this.#bodyUsed = true;
+				(	{	throwAfterCancel: true,
+
+						read: async buffer =>
+						{	// Check if the signal is aborted
+							if (signal.aborted)
+							{	throw new CancelError('The operation was aborted');
+							}
+
+							this.#bodyUsed = true;
 							const n = await bodyInit.read(buffer);
 							if (n)
 							{	lengthLimit -= n;
@@ -270,7 +317,12 @@ export class SuperRequest extends Request
 				async function *it()
 				{	useBody();
 					for await (const chunk of bodyInit2)
-					{	lengthLimit -= chunk.byteLength;
+					{	// Check if the signal is aborted
+						if (signal.aborted)
+						{	throw new CancelError('The operation was aborted');
+						}
+
+						lengthLimit -= chunk.byteLength;
 						if (lengthLimit < 0)
 						{	throw new TooBigError('Request body is too large');
 						}
@@ -363,7 +415,12 @@ export class SuperRequest extends Request
 	}
 
 	override async json()
-	{	if (this.#bodyInit instanceof FormData || this.#bodyInit instanceof URLSearchParams)
+	{	// Check if the signal is aborted
+		if (this.signal.aborted)
+		{	throw new CancelError('The operation was aborted');
+		}
+
+		if (this.#bodyInit instanceof FormData || this.#bodyInit instanceof URLSearchParams)
 		{	this.#bodyUsed = true;
 			const obj: Record<string, string> = {};
 			for (const [name, value] of this.#bodyInit)
@@ -424,7 +481,12 @@ export class SuperRequest extends Request
 	}
 
 	override async formData()
-	{	if (this.#bodyInit instanceof FormData || this.#bodyInit instanceof URLSearchParams)
+	{	// Check if the signal is aborted
+		if (this.signal.aborted)
+		{	throw new CancelError('The operation was aborted');
+		}
+
+		if (this.#bodyInit instanceof FormData || this.#bodyInit instanceof URLSearchParams)
 		{	this.#bodyUsed = true;
 			const obj = new FormData;
 			for (const [name, value] of this.#bodyInit)
@@ -480,7 +542,12 @@ export class SuperRequest extends Request
 	}
 
 	override bytes(): Promise<Uint8Array<ArrayBuffer>>
-	{	const bodyInit = this.#bodyInit;
+	{	// Check if the signal is aborted
+		if (this.signal.aborted)
+		{	throw new CancelError('The operation was aborted');
+		}
+
+		const bodyInit = this.#bodyInit;
 		if (bodyInit == null)
 		{	return Promise.resolve(new Uint8Array);
 		}
@@ -516,7 +583,12 @@ export class SuperRequest extends Request
 	}
 
 	override async arrayBuffer(): Promise<ArrayBuffer>
-	{	const bodyInit = this.#bodyInit;
+	{	// Check if the signal is aborted
+		if (this.signal.aborted)
+		{	throw new CancelError('The operation was aborted');
+		}
+
+		const bodyInit = this.#bodyInit;
 		if (bodyInit == null)
 		{	return Promise.resolve(new ArrayBuffer);
 		}
@@ -530,7 +602,12 @@ export class SuperRequest extends Request
 	}
 
 	override text()
-	{	const bodyInit = this.#bodyInit;
+	{	// Check if the signal is aborted
+		if (this.signal.aborted)
+		{	throw new CancelError('The operation was aborted');
+		}
+
+		const bodyInit = this.#bodyInit;
 		if (bodyInit == null)
 		{	return Promise.resolve('');
 		}
@@ -568,7 +645,12 @@ export class SuperRequest extends Request
 	}
 
 	override blob()
-	{	this.#bodyUsed = this.#bodyInit != null;
+	{	// Check if the signal is aborted
+		if (this.signal.aborted)
+		{	throw new CancelError('The operation was aborted');
+		}
+
+		this.#bodyUsed = this.#bodyInit != null;
 		const body = this.#getBodyStream();
 		return Promise.resolve(new SuperBlob(body, this.type));
 	}

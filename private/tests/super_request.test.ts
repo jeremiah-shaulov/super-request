@@ -1,6 +1,6 @@
 import {SuperRequest, TooBigError} from '../super_request.ts';
 import {assertEquals, assert} from './deps.ts';
-import {RdStream} from '../deps.ts';
+import {CancelError, RdStream} from '../deps.ts';
 
 const encoder = new TextEncoder;
 const decoder = new TextDecoder;
@@ -20,11 +20,13 @@ Deno.test
 
 Deno.test
 (	'SuperRequest - constructor with Request object',
-	() =>
-	{	const originalReq = new Request('https://example.com/test', {method: 'POST'});
+	async () =>
+	{	const body = JSON.stringify({key: 'value'});
+		const originalReq = new Request('https://example.com/test', {method: 'POST', body});
 		const req = new SuperRequest(originalReq);
 		assertEquals(req.url, 'https://example.com/test');
 		assertEquals(req.method, 'POST');
+		assertEquals(await req.json(), {key: 'value'});
 	}
 );
 
@@ -131,6 +133,150 @@ Deno.test
 		const req = new SuperRequest('https://example.com/test', {method: 'POST', body: reader});
 		const text = await req.text();
 		assertEquals(text, 'reader data');
+	}
+);
+
+Deno.test
+(	'SuperRequest - constructor with signal',
+	() =>
+	{	const controller = new AbortController;
+		const req = new SuperRequest('https://example.com/test', {signal: controller.signal});
+		assert(req.signal, 'Request should have a signal');
+		assertEquals(req.signal.aborted, false);
+	}
+);
+
+Deno.test
+(	'SuperRequest - constructor with aborted signal',
+	() =>
+	{	const controller = new AbortController;
+		controller.abort();
+		const req = new SuperRequest('https://example.com/test', {signal: controller.signal});
+		assert(req.signal, 'Request should have a signal');
+		assertEquals(req.signal.aborted, true);
+	}
+);
+
+Deno.test
+(	'SuperRequest - constructor inherits signal from Request',
+	() =>
+	{	const controller = new AbortController;
+		const originalReq = new Request('https://example.com/test', {signal: controller.signal});
+		const req = new SuperRequest(originalReq);
+		assert(req.signal, 'Request should have a signal');
+		assertEquals(req.signal.aborted, false);
+	}
+);
+
+Deno.test
+(	'SuperRequest - constructor with signal that gets aborted',
+	async () =>
+	{	const controller = new AbortController;
+		const req = new SuperRequest('https://example.com/test', {signal: controller.signal});
+		assertEquals(req.signal.aborted, false);
+
+		// Abort the signal
+		controller.abort();
+
+		// Give it a moment to propagate
+		await new Promise(resolve => setTimeout(resolve, 10));
+		assertEquals(req.signal.aborted, true);
+	}
+);
+
+Deno.test
+(	'SuperRequest - signal aborts reading body stream',
+	async () =>
+	{	const controller = new AbortController;
+
+		// Create a stream that yields data slowly
+		let timeoutId: number | undefined;
+		let resolveTimeout: (() => void) | undefined;
+		const stream = new ReadableStream<Uint8Array>
+		(	{	async pull(ctrl)
+				{	const promise = new Promise<void>
+					(	resolve =>
+						{	resolveTimeout = resolve;
+							timeoutId = setTimeout(resolve, 50);
+						}
+					);
+					await promise;
+					ctrl.enqueue(encoder.encode('chunk'));
+				},
+				cancel()
+				{	if (timeoutId !== undefined)
+					{	clearTimeout(timeoutId);
+						resolveTimeout?.();
+					}
+				}
+			}
+		);
+
+		const req = new SuperRequest
+		(	'https://example.com/test',
+			{	method: 'POST',
+				body: stream,
+				signal: controller.signal,
+			}
+		);
+
+		// Start reading the body
+		const bodyStream = req.body;
+		assert(bodyStream, 'Body stream should exist');
+		const reader = bodyStream.getReader();
+
+		// Read first chunk
+		const result1 = await reader.read();
+		assert(!result1.done, 'Should have read first chunk');
+
+		// Abort the signal while reading
+		controller.abort();
+
+		// Try to read more - should fail
+		let error: Error | undefined;
+		try
+		{	await reader.read();
+		}
+		catch (e)
+		{	error = e instanceof Error ? e : new Error(e+'');
+		}
+		finally
+		{	reader.releaseLock();
+		}
+
+		assert(error, 'Reading should throw an error after abort');
+		assert(error instanceof CancelError, `Expected abort error, got: ${error.name} - ${error.message}`);
+	}
+);
+
+Deno.test
+(	'SuperRequest - signal aborts text() method',
+	async () =>
+	{	const controller = new AbortController;
+
+		// Use a simple string body for this test
+		const req = new SuperRequest
+		(	'https://example.com/test',
+			{	method: 'POST',
+				body: 'test data',
+				signal: controller.signal,
+			}
+		);
+
+		// Abort immediately
+		controller.abort();
+
+		// Try to read text - should fail
+		let error: Error | undefined;
+		try
+		{	await req.text();
+		}
+		catch (e)
+		{	error = e instanceof Error ? e : new Error(e+'');
+		}
+
+		assert(error, 'text() should throw an error after abort');
+		assert(error instanceof CancelError, `Expected abort error, got: ${error.name} - ${error.message}`);
 	}
 );
 
