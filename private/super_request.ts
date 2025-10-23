@@ -67,20 +67,31 @@ export class SuperRequest extends Request
 	#bodyFormData: FormData|undefined;
 
 	constructor(input: RequestInfo, init?: SuperRequestInit, options?: SuperRequestOptions)
-	{	super
+	{	const cache = init?.cache ?? (typeof(input)=='string' ? undefined : input.cache);
+		const credentials = init?.credentials ?? (typeof(input)=='string' ? undefined : input.credentials);
+		const headers = init?.headers ?? (typeof(input)=='string' ? undefined : input.headers);
+		const integrity = init?.integrity ?? (typeof(input)=='string' ? undefined : input.integrity);
+		const keepalive = init?.keepalive ?? (typeof(input)=='string' ? undefined : input.keepalive);
+		const method = init?.method ?? (typeof(input)=='string' ? undefined : input.method);
+		const mode = init?.mode ?? (typeof(input)=='string' ? undefined : input.mode);
+		const redirect = init?.redirect ?? (typeof(input)=='string' ? undefined : input.redirect);
+		const referrer = init?.referrer ?? (typeof(input)=='string' ? undefined : input.referrer);
+		const referrerPolicy = init?.referrerPolicy ?? (typeof(input)=='string' ? undefined : input.referrerPolicy);
+		const signal = init?.signal ?? (typeof(input)=='string' ? undefined : input.signal);
+		super
 		(	typeof(input)=='string' ? input : input.url,
-			{	body: null,
-				cache: init?.cache ?? (typeof(input)=='string' ? undefined : input.cache),
-				credentials: init?.credentials ?? (typeof(input)=='string' ? undefined : input.credentials),
-				headers: init?.headers ?? (typeof(input)=='string' ? undefined : input.headers),
-				integrity: init?.integrity ?? (typeof(input)=='string' ? undefined : input.integrity),
-				keepalive: init?.keepalive ?? (typeof(input)=='string' ? undefined : input.keepalive),
-				method: init?.method ?? (typeof(input)=='string' ? undefined : input.method),
-				mode: init?.mode ?? (typeof(input)=='string' ? undefined : input.mode),
-				redirect: init?.redirect ?? (typeof(input)=='string' ? undefined : input.redirect),
-				referrer: init?.referrer ?? (typeof(input)=='string' ? undefined : input.referrer),
-				referrerPolicy: init?.referrerPolicy ?? (typeof(input)=='string' ? undefined : input.referrerPolicy),
-				signal: init?.signal ?? (typeof(input)=='string' ? undefined : input.signal),
+			{	cache,
+				credentials,
+				headers,
+				integrity,
+				keepalive,
+				method,
+				mode,
+				redirect,
+				referrer,
+				referrerPolicy,
+				signal,
+				body: null,
 			}
 		);
 		this.#bodyInit = init?.body ?? (typeof(input)=='string' ? null : input.body);
