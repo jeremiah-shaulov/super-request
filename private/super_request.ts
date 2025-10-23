@@ -49,6 +49,7 @@ export class SuperRequest extends Request
 {	#bodyInit: SuperBodyInit|null;
 	#lengthLimit;
 	#bodyUsed = false;
+	#bodyStream: RdStream|undefined;
 	#urlUrl: SuperUrl|undefined;
 	#type: string|undefined;
 	#charset: string|undefined;
@@ -137,135 +138,138 @@ export class SuperRequest extends Request
 	}
 
 	#getBodyStream()
-	{	let lengthLimit = this.#lengthLimit;
-		const bodyInit = this.#bodyInit;
-		if (bodyInit instanceof ReadableStream || bodyInit instanceof Blob || bodyInit instanceof FormData)
-		{	let bodyStream: ReadableStream<Uint8Array> | undefined;
+	{	if (!this.#bodyStream)
+		{	let lengthLimit = this.#lengthLimit;
+			const bodyInit = this.#bodyInit;
+			if (bodyInit instanceof ReadableStream || bodyInit instanceof Blob || bodyInit instanceof FormData)
+			{	let bodyStream: ReadableStream<Uint8Array> | undefined;
 
-			let reader: ReadableStreamBYOBReader|undefined;
-			let readBuffer: Uint8Array|undefined;
+				let reader: ReadableStreamBYOBReader|undefined;
+				let readBuffer: Uint8Array|undefined;
 
-			return new RdStream
-			(	{	read: async buffer =>
-					{	bodyStream ??=
-						(	bodyInit instanceof ReadableStream ?
-								bodyInit :
-							bodyInit instanceof Blob ?
-								bodyInit.stream() :
-								new Request(this.url, {method: this.method, headers: this.headers, body: bodyInit}).body!
-						);
-						this.#bodyUsed = true;
-						if (!reader)
-						{	try
-							{	reader = bodyStream.getReader({mode: 'byob'});
+				this.#bodyStream = new RdStream
+				(	{	read: async buffer =>
+						{	bodyStream ??=
+							(	bodyInit instanceof ReadableStream ?
+									bodyInit :
+								bodyInit instanceof Blob ?
+									bodyInit.stream() :
+									new Request(this.url, {method: this.method, headers: this.headers, body: bodyInit}).body!
+							);
+							this.#bodyUsed = true;
+							if (!reader)
+							{	try
+								{	reader = bodyStream.getReader({mode: 'byob'});
+								}
+								catch
+								{	bodyStream = RdStream.from(bodyStream);
+									reader = bodyStream.getReader({mode: 'byob'});
+								}
 							}
-							catch
-							{	bodyStream = RdStream.from(bodyStream);
-								reader = bodyStream.getReader({mode: 'byob'});
+
+							if (!readBuffer || readBuffer.byteLength<buffer.byteLength)
+							{	readBuffer = new Uint8Array(buffer.buffer.byteLength);
 							}
-						}
-
-						if (!readBuffer || readBuffer.byteLength<buffer.byteLength)
-						{	readBuffer = new Uint8Array(buffer.buffer.byteLength);
-						}
-						const {value, done} = await reader.read(readBuffer.subarray(0, buffer.byteLength));
-						if (done || !value)
-						{	return 0;
-						}
-						readBuffer = new Uint8Array(value.buffer);
-						lengthLimit -= value.byteLength;
-						if (lengthLimit < 0)
-						{	const e = new Error('Request body is too large');
-							await reader.cancel().catch(e2 => Promise.reject(new Error(e2 instanceof Error ? e2.message : e2+'', {cause: e})));
-							throw e;
-						}
-						buffer.set(value);
-						return value.byteLength;
-					},
-
-					cancel: reason =>
-					{	bodyStream ??=
-						(	bodyInit instanceof ReadableStream ?
-								bodyInit :
-							bodyInit instanceof Blob ?
-								bodyInit.stream() :
-								new Request(this.url, {method: this.method, headers: this.headers, body: bodyInit}).body!
-						);
-						return (reader ?? bodyStream).cancel(reason);
-					},
-
-					finally: () =>
-					{	reader?.releaseLock();
-						readBuffer = undefined;
-						this.#bodyIterator = undefined;
-						this.#boundary = undefined;
-					}
-				}
-			);
-		}
-		else if (bodyInit==null || typeof(bodyInit)=='string' || bodyInit instanceof URLSearchParams || bodyInit instanceof ArrayBuffer || ArrayBuffer.isView(bodyInit))
-		{	let data =
-				bodyInit==null ?
-					new Uint8Array :
-				typeof(bodyInit)=='string' ?
-					(!this.#charset ? encoder.encode(bodyInit) : Iconv.encode(bodyInit, this.#charset)) :
-				bodyInit instanceof URLSearchParams ?
-					encoder.encode(bodyInit+'') :
-				bodyInit instanceof ArrayBuffer ?
-					new Uint8Array(bodyInit) :
-					new Uint8Array(bodyInit.buffer, bodyInit.byteOffset, bodyInit.byteLength);
-
-			this.#bodyUsed = bodyInit != null;
-
-			if (data.byteLength > lengthLimit)
-			{	throw new TooBigError('Request body is too large');
-			}
-
-			return new RdStream
-			(	{	read(buffer)
-					{	const n = Math.min(buffer.byteLength, data.byteLength);
-						buffer.set(data.subarray(0, n));
-						data = data.subarray(n);
-						return n;
-					}
-				}
-			);
-		}
-		else if ('read' in bodyInit)
-		{	return new RdStream
-			(	{	read: async buffer =>
-					{	this.#bodyUsed = true;
-						const n = await bodyInit.read(buffer);
-						if (n)
-						{	lengthLimit -= n;
+							const {value, done} = await reader.read(readBuffer.subarray(0, buffer.byteLength));
+							if (done || !value)
+							{	return 0;
+							}
+							readBuffer = new Uint8Array(value.buffer);
+							lengthLimit -= value.byteLength;
 							if (lengthLimit < 0)
-							{	throw new TooBigError('Request body is too large');
+							{	const e = new Error('Request body is too large');
+								await reader.cancel().catch(e2 => Promise.reject(new Error(e2 instanceof Error ? e2.message : e2+'', {cause: e})));
+								throw e;
 							}
+							buffer.set(value);
+							return value.byteLength;
+						},
+
+						cancel: reason =>
+						{	bodyStream ??=
+							(	bodyInit instanceof ReadableStream ?
+									bodyInit :
+								bodyInit instanceof Blob ?
+									bodyInit.stream() :
+									new Request(this.url, {method: this.method, headers: this.headers, body: bodyInit}).body!
+							);
+							return (reader ?? bodyStream).cancel(reason);
+						},
+
+						finally: () =>
+						{	reader?.releaseLock();
+							readBuffer = undefined;
+							this.#bodyIterator = undefined;
+							this.#boundary = undefined;
 						}
-						return n;
-					},
-					finally()
-					{	return bodyInit?.close?.();
 					}
-				}
-			);
-		}
-		else
-		{	const bodyInit2 = bodyInit;
-			const useBody = () => this.#bodyUsed = true;
-			// deno-lint-ignore no-inner-declarations
-			async function *it()
-			{	useBody();
-				for await (const chunk of bodyInit2)
-				{	lengthLimit -= chunk.byteLength;
-					if (lengthLimit < 0)
-					{	throw new TooBigError('Request body is too large');
-					}
-					yield chunk;
-				}
+				);
 			}
-			return RdStream.from(it());
+			else if (bodyInit==null || typeof(bodyInit)=='string' || bodyInit instanceof URLSearchParams || bodyInit instanceof ArrayBuffer || ArrayBuffer.isView(bodyInit))
+			{	let data =
+					bodyInit==null ?
+						new Uint8Array :
+					typeof(bodyInit)=='string' ?
+						(!this.#charset ? encoder.encode(bodyInit) : Iconv.encode(bodyInit, this.#charset)) :
+					bodyInit instanceof URLSearchParams ?
+						encoder.encode(bodyInit+'') :
+					bodyInit instanceof ArrayBuffer ?
+						new Uint8Array(bodyInit) :
+						new Uint8Array(bodyInit.buffer, bodyInit.byteOffset, bodyInit.byteLength);
+
+				this.#bodyUsed = bodyInit != null;
+
+				if (data.byteLength > lengthLimit)
+				{	throw new TooBigError('Request body is too large');
+				}
+
+				this.#bodyStream = new RdStream
+				(	{	read(buffer)
+						{	const n = Math.min(buffer.byteLength, data.byteLength);
+							buffer.set(data.subarray(0, n));
+							data = data.subarray(n);
+							return n;
+						}
+					}
+				);
+			}
+			else if ('read' in bodyInit)
+			{	this.#bodyStream = new RdStream
+				(	{	read: async buffer =>
+						{	this.#bodyUsed = true;
+							const n = await bodyInit.read(buffer);
+							if (n)
+							{	lengthLimit -= n;
+								if (lengthLimit < 0)
+								{	throw new TooBigError('Request body is too large');
+								}
+							}
+							return n;
+						},
+						finally()
+						{	return bodyInit?.close?.();
+						}
+					}
+				);
+			}
+			else
+			{	const bodyInit2 = bodyInit;
+				const useBody = () => this.#bodyUsed = true;
+				// deno-lint-ignore no-inner-declarations
+				async function *it()
+				{	useBody();
+					for await (const chunk of bodyInit2)
+					{	lengthLimit -= chunk.byteLength;
+						if (lengthLimit < 0)
+						{	throw new TooBigError('Request body is too large');
+						}
+						yield chunk;
+					}
+				}
+				this.#bodyStream = RdStream.from(it());
+			}
 		}
+		return this.#bodyStream;
 	}
 
 	#parseContentType()
