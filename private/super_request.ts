@@ -66,20 +66,21 @@ export class SuperRequest extends Request
 
 	#bodyFormData: FormData|undefined;
 
-	constructor(input: RequestInfo, init?: SuperRequestInit, options?: SuperRequestOptions)
-	{	const cache = init?.cache ?? (typeof(input)=='string' ? undefined : input.cache);
-		const credentials = init?.credentials ?? (typeof(input)=='string' ? undefined : input.credentials);
-		const headers = init?.headers ?? (typeof(input)=='string' ? undefined : input.headers);
-		const integrity = init?.integrity ?? (typeof(input)=='string' ? undefined : input.integrity);
-		const keepalive = init?.keepalive ?? (typeof(input)=='string' ? undefined : input.keepalive);
-		const method = init?.method ?? (typeof(input)=='string' ? undefined : input.method);
-		const mode = init?.mode ?? (typeof(input)=='string' ? undefined : input.mode);
-		const redirect = init?.redirect ?? (typeof(input)=='string' ? undefined : input.redirect);
-		const referrer = init?.referrer ?? (typeof(input)=='string' ? undefined : input.referrer);
-		const referrerPolicy = init?.referrerPolicy ?? (typeof(input)=='string' ? undefined : input.referrerPolicy);
-		const signal = init?.signal ?? (typeof(input)=='string' ? undefined : input.signal);
+	constructor(input: RequestInfo|URL, init?: SuperRequestInit, options?: SuperRequestOptions)
+	{	const inputRequest = typeof(input)=='string' || input instanceof URL ? undefined : input;
+		const cache          = init?.cache          ?? inputRequest?.cache;
+		const credentials    = init?.credentials    ?? inputRequest?.credentials;
+		const headers        = init?.headers        ?? inputRequest?.headers;
+		const integrity      = init?.integrity      ?? inputRequest?.integrity;
+		const keepalive      = init?.keepalive      ?? inputRequest?.keepalive;
+		const method         = init?.method         ?? inputRequest?.method;
+		const mode           = init?.mode           ?? inputRequest?.mode;
+		const redirect       = init?.redirect       ?? inputRequest?.redirect;
+		const referrer       = init?.referrer       ?? inputRequest?.referrer;
+		const referrerPolicy = init?.referrerPolicy ?? inputRequest?.referrerPolicy;
+		const signal         = init?.signal         ?? inputRequest?.signal;
 		super
-		(	typeof(input)=='string' ? input : input.url,
+		(	typeof(input)=='string' || input instanceof URL ? input : input.url,
 			{	cache,
 				credentials,
 				headers,
@@ -94,7 +95,7 @@ export class SuperRequest extends Request
 				body: null,
 			}
 		);
-		const bodyInit = init?.body ?? (typeof(input)=='string' ? null : input.body);
+		const bodyInit = init?.body ?? (typeof(input)=='string' || input instanceof URL ? null : input.body);
 		this.#bodyInit = bodyInit;
 		this.#lengthLimit = options?.lengthLimit ?? Number.MAX_SAFE_INTEGER;
 		if (signal && (bodyInit instanceof ReadableStream || bodyInit instanceof Blob))
