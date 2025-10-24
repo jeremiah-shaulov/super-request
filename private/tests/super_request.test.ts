@@ -19,6 +19,15 @@ Deno.test
 );
 
 Deno.test
+(	'SuperRequest - constructor with URL object',
+	() =>
+	{	const req = new SuperRequest(new URL('https://example.com/test'));
+		assertEquals(req.url, 'https://example.com/test');
+		assertEquals(req.method, 'GET');
+	}
+);
+
+Deno.test
 (	'SuperRequest - constructor with Request object',
 	async () =>
 	{	const body = JSON.stringify({key: 'value'});
@@ -291,6 +300,9 @@ Deno.test
 		const urlUrl = req.urlUrl;
 		assertEquals(urlUrl.href, 'https://example.com/test?foo=bar');
 		assertEquals(urlUrl.searchParamsJson?.foo, 'bar');
+		assertEquals(req.url, urlUrl.href);
+		urlUrl.searchParams.append('baz', 'qux');
+		assertEquals(req.url, 'https://example.com/test?foo=bar&baz=qux');
 	}
 );
 
