@@ -3,7 +3,7 @@
 [Documentation Index](../README.md)
 
 ```ts
-import {SuperBlob} from "jsr:@shaulov/super-request@0.1.3"
+import {SuperBlob} from "jsr:@shaulov/super-request@0.1.4"
 ```
 
 A Blob implementation that uses a ReadableStream as the data source.

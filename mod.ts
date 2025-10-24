@@ -1,6 +1,4 @@
-/**	# SuperRequest Module
-
-	Provides extended versions of standard web API classes, that simplify web request handling.
+/**	Provides extended versions of standard web API classes, that simplify web request handling.
 
 	## Classes
 
@@ -40,6 +38,7 @@
 	File and Blob implementations that use ReadableStreams as data sources.
 
 	@module
+	@summary SuperRequest Module
  **/
 
 export {CancelError} from './private/deps.ts';

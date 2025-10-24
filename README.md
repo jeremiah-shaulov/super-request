@@ -1,11 +1,11 @@
 <!--
 	This file is generated with the following command:
-	deno run --allow-all https://raw.githubusercontent.com/jeremiah-shaulov/tsa/v0.0.55/tsa.ts doc-md --outFile=README.md --outUrl=https://raw.githubusercontent.com/jeremiah-shaulov/super-request/0.1.3/README.md --importUrl=jsr:@shaulov/super-request@0.1.3 mod.ts
+	deno run --allow-all https://raw.githubusercontent.com/jeremiah-shaulov/tsa/v0.0.55/tsa.ts doc-md --outFile=README.md --outUrl=https://raw.githubusercontent.com/jeremiah-shaulov/super-request/0.1.4/README.md --importUrl=jsr:@shaulov/super-request@0.1.4 mod.ts
 -->
 
-[Documentation Index](generated-doc/README.md)
-
 # SuperRequest Module
+
+[Documentation Index](generated-doc/README.md)
 
 Provides extended versions of standard web API classes, that simplify web request handling.
 

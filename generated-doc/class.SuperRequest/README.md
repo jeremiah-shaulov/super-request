@@ -3,7 +3,7 @@
 [Documentation Index](../README.md)
 
 ```ts
-import {SuperRequest} from "jsr:@shaulov/super-request@0.1.3"
+import {SuperRequest} from "jsr:@shaulov/super-request@0.1.4"
 ```
 
 This class extends the standard Request class to add additional features.
@@ -23,10 +23,11 @@ If the request body exceeds this limit, the body stream is cancelled, and a [Too
 
 ## This class has
 
-- [constructor](#-constructorinput-requestinfo-init-superrequestinit-options-superrequestoptions)
-- 6 properties:
+- [constructor](#-constructorinput-requestinfo--url-init-superrequestinit-options-superrequestoptions)
+- 7 properties:
 [body](#-override-get-body-readablestreamuint8arrayarraybuffer),
 [bodyUsed](#-override-get-bodyused-boolean),
+[url](#-override-get-url-string),
 [urlUrl](#-get-urlurl-superurl),
 [type](#-get-type-string),
 [charset](#-get-charset-string),
@@ -42,7 +43,7 @@ If the request body exceeds this limit, the body stream is cancelled, and a [Too
 - base class
 
 
-#### 🔧 `constructor`(input: RequestInfo, init?: [SuperRequestInit](../type.SuperRequestInit/README.md), options?: [SuperRequestOptions](../type.SuperRequestOptions/README.md))
+#### 🔧 `constructor`(input: RequestInfo | URL, init?: [SuperRequestInit](../type.SuperRequestInit/README.md), options?: [SuperRequestOptions](../type.SuperRequestOptions/README.md))
 
 
 
@@ -56,6 +57,12 @@ If the request body exceeds this limit, the body stream is cancelled, and a [Too
 
 > Stores a `Boolean` that declares whether the body has been used in a
 > response yet.
+
+
+
+#### 📄 `override` `get` url(): `string`
+
+> Returns the URL of request as a string.
 
 
 

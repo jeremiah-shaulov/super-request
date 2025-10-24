@@ -3,7 +3,7 @@
 [Documentation Index](../README.md)
 
 ```ts
-import {CancelError} from "jsr:@shaulov/super-request@0.1.3"
+import {CancelError} from "jsr:@shaulov/super-request@0.1.4"
 ```
 
 ## This class has
