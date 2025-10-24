@@ -128,6 +128,10 @@ export class SuperRequest extends Request
 	{	return this.#bodyUsed;
 	}
 
+	override get url()
+	{	return !this.#urlUrl ? super.url : this.#urlUrl.href;
+	}
+
 	get urlUrl()
 	{	if (!this.#urlUrl)
 		{	this.#urlUrl = new SuperUrl(this.url, this.#getUrlBase());
