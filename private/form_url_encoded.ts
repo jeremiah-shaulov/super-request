@@ -12,6 +12,14 @@ const C_A_CAP = 'A'.charCodeAt(0);
 const C_F_CAP = 'F'.charCodeAt(0);
 const C_A_LOW = 'a'.charCodeAt(0);
 
+/**	Parses an application/x-www-form-urlencoded request body and yields name-value pairs.
+
+	Handles URL-encoded data where '+' represents spaces and '%XX' represents encoded bytes.
+	Yields entries in the format `{name, value}` for "name=value" pairs, or `{name}` for standalone names (not followed by `=value`).
+
+	@param body The readable stream containing the URL-encoded body data
+	@param charset The character encoding from "Content-Type" header (default: "utf-8")
+ **/
 export async function *parseFormUrlencoded(body: ReadableStream<Uint8Array>, charset?: string): AsyncGenerator<{name: string, value?: string}, void>
 {	const enum State
 	{	NAME,

@@ -37,6 +37,39 @@
 	### {@link SuperFile} and {@link SuperBlob}
 	File and Blob implementations that use ReadableStreams as data sources.
 
+	## Typical usage with deno
+
+	```ts
+	async function handleRequest(request: SuperRequest, info: Deno.ServeHandlerInfo)
+	{	return new Response('Content', {headers: {'content-type': 'text/plain'}});
+	}
+
+	const ac = new AbortController;
+	Deno.addSignalListener('SIGTERM', () => ac.abort());
+	Deno.addSignalListener('SIGINT', () => ac.abort());
+	Deno.addSignalListener('SIGQUIT', () => ac.abort());
+
+	const server = Deno.serve
+	(	{	signal: ac.signal,
+		},
+		async (request, info) =>
+		{	try
+			{	const response = await handleRequest(new SuperRequest(request), info);
+				if (response)
+				{	return response;
+				}
+			}
+			catch (e)
+			{	if (!(e instanceof Deno.errors.NotFound))
+				{	return new Response(e instanceof Error ? e.message : e+'', {status: 500, headers: {'content-type': 'text/plain'}});
+				}
+			}
+			return new Response('Not found', {status: 404, headers: {'content-type': 'text/plain'}});
+		}
+	);
+	await server.finished;
+	```
+
 	@module
 	@summary SuperRequest Module
  **/

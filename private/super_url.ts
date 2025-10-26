@@ -1,3 +1,6 @@
+/**	Represents a URL search parameter value, which can be a string, an object with SearchParam values, or an array of SearchParams.
+	This type supports nested structures like `{items: {a: {b: ["val0", "val1"]}}}`.
+ **/
 export type SearchParam = string | {[key: string]: SearchParam} | SearchParam[];
 
 /**	This class extends the standard URL class by adding a `searchParamsJson` property,
@@ -19,6 +22,21 @@ export class SuperUrl extends URL
 		To get an object, use the `[key]` notation. For example, "items[a]=1&items[b]=2" will be parsed as `{items: {a: "1", b: "2"}}`.
 
 		Objects and arrays can be nested. For example, "items[a][b][]=val0&items[a][b][]=val1" will be parsed as `{items: {a: {b: ["val0", "val1"]}}}`.
+
+		```ts
+		// To run this example:
+		// deno run example.ts
+
+		import {SuperUrl} from '../mod.ts';
+		import {assertEquals} from 'jsr:@std/assert@1.0.15/equals';
+
+		const url = new SuperUrl('https://example.com/path?id=1&items[]=a&items[]=b&user[profile][name]=John');
+		const {id, items, user} = url.searchParamsJson;
+
+		assertEquals(id, '1');
+		assertEquals(items, ['a', 'b']);
+		assertEquals(user, {profile: {name: 'John'}});
+		```
 	 **/
 	get searchParamsJson()
 	{	const queryString = this.search;
@@ -38,8 +56,16 @@ function parseSearchParamsJson(searchParams: URLSearchParams)
 	return obj;
 }
 
-/**	If key is like "items[]=a&items[]=b" or "items[a][b]=c", follows the path, creating additional `Record<string, SearchParam>` or `SearchParam[]` objects.
-	The algorithm is similar to how PHP parses GET parameters.
+/**	Sets a value in a SearchParam object by following a path specified in the name parameter.
+
+	If the name contains array notation like "items[]" or "items[0]", or object notation like "items[a][b]",
+	this function creates the necessary nested structure and sets the value at the specified path.
+	The algorithm is similar to how PHP parses query string parameters.
+
+	@param obj The target object to set the value in
+	@param name The parameter name, potentially with array/object notation (e.g., "items[a][b]" or "items[]")
+	@param value The string value to set
+	@returns `true` if the name was well-formed, `false` if there were syntax issues
  **/
 export function setSearchParamJson(obj: Record<string, SearchParam>, name: string, value: string)
 {	let pos = name.indexOf('[');

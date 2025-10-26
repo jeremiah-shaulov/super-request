@@ -11,17 +11,30 @@ const RE_HAS_SCHEME = /^[a-zA-Z][a-zA-Z0-9.+-]*:\/\//;
 const encoder = new TextEncoder;
 const decoder = new TextDecoder;
 
+/**	An object that has a `read(buffer)` method for reading data into a buffer, similar to Deno's Reader interface.
+	This allows using objects like `Deno.FsFile` or `Deno.TcpConn` as request body sources.
+	The optional `close()` method will be called when the stream is finished or cancelled.
+ **/
 type ReaderSource =
 {	read(view: Uint8Array): number | null | PromiseLike<number|null>;
 	close?(): void | PromiseLike<void>;
 };
 
+/**	Extended body initialization type that accepts standard BodyInit types plus ReaderSource objects.
+ **/
 type SuperBodyInit = BodyInit | ReaderSource;
 
+/**	Initialization options for SuperRequest, extending standard RequestInit and accepting SuperBodyInit for the body.
+ **/
 export type SuperRequestInit = Omit<RequestInit, 'body'> & {body?: SuperBodyInit|null};
 
+/**	Configuration options for SuperRequest behavior.
+ **/
 export type SuperRequestOptions =
-{	lengthLimit?: number;
+{	/**	Maximum allowed size of the request body in bytes. If exceeded, a TooBigError will be thrown.
+		@default Number.MAX_SAFE_INTEGER
+	 **/
+	lengthLimit?: number;
 };
 
 /**	@category Errors
@@ -154,6 +167,9 @@ export class SuperRequest extends Request
 		return this.#charset;
 	}
 
+	/**	Provides access to cookies from the "Cookie" header, parsed into a SuperCookies object.
+		You can read, modify, add, or delete cookies, and then apply the changes to a Response object.
+	 **/
 	get cookies()
 	{	if (!this.#cookies)
 		{	this.#cookies = new SuperCookies(this.headers.get('cookie'));
@@ -359,6 +375,22 @@ export class SuperRequest extends Request
 		return this.#type;
 	}
 
+	/**	Yields file uploads from a "multipart/form-data" request body.
+
+		Each yielded object contains the field name and a File object with a readable stream.
+		You must consume (read completely) or cancel each file stream before the next file can be yielded.
+		This ensures efficient streaming without keeping entire files in memory.
+
+		Non-file fields are automatically collected and will be available via {@link formData()} or {@link json()} methods.
+
+		```ts
+		for await (const {name, value} of request.files())
+		{	console.log(`Uploading ${value.name} to field ${name}`);
+			using file = Deno.open('/tmp/' + value.name, {write: true, create: true});
+			await value.stream().pipeTo(file.writable);
+		}
+		```
+	 **/
 	async *files()
 	{	this.#bodyUsed = this.#bodyInit != null;
 		while (true)

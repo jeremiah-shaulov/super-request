@@ -18,9 +18,20 @@ const C_HYPHEN = '-'.charCodeAt(0);
 
 const encoder = new TextEncoder;
 
+/**	Represents a single entry in a multipart/form-data body.
+	The value can be either a string for regular form fields, or a SuperFile for uploaded files.
+ **/
 export type FormDataEntry = {name: string; value: string|SuperFile};
 
 /**	According to: https://www.w3.org/Protocols/rfc1341/7_2_Multipart.html
+
+	Parses a multipart/form-data request body and yields form entries one by one.
+
+	For file uploads, the returned SuperFile must be consumed (read or cancelled) before the next entry can be yielded.
+
+	@param body The readable stream containing the multipart body data
+	@param charset The character encoding from "Content-Type" header (e.g., "utf-8")
+	@param boundary The multipart boundary string from "Content-Type" header
  **/
 export async function *parseFormData(body: RdStream, charset: string|undefined, boundary: string): AsyncGenerator<FormDataEntry, void, unknown>
 {	/*	Parse:

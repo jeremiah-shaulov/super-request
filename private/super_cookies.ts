@@ -117,6 +117,9 @@ export class SuperCookies extends Map<string, string>
 	{	applyToResponse(response, this.#orig, this, this.#options);
 	}
 
+	/**	Returns the string representation of the cookies, suitable for "Cookie" header.
+		@return A string containing the cookies in "name=value; name2=value2" format.
+	 **/
 	override toString()
 	{	let str = '';
 		let delim = '';

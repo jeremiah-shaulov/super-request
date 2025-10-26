@@ -2,6 +2,14 @@ const RE_CONTENT_TYPE_PARAM = /;\s*([a-zA-Z0-9\-]+)\s*=\s*("[^"]*"|[^\s;"]*)\s*/
 
 const C_QT = '"'.charCodeAt(0);
 
+/**	Parses a Content-Type header value into its components.
+
+	Extracts the MIME type and relevant parameters: charset and boundary.
+	For example, "text/html; charset=utf-8" returns `{type: "text/html", charset: "utf-8", boundary: undefined}`.
+
+	@param type The full Content-Type header value
+	@returns An object containing the parsed type, charset (if present), and boundary (if present for multipart types)
+ **/
 export function parseContentType(type: string)
 {	let charset: string|undefined;
 	let boundary: string|undefined;
