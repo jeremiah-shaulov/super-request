@@ -67,7 +67,8 @@ export class SuperRequest extends Request
 	#bodyFormData: FormData|undefined;
 
 	constructor(input: RequestInfo|URL, init?: SuperRequestInit, options?: SuperRequestOptions)
-	{	const inputRequest = typeof(input)=='string' || input instanceof URL ? undefined : input;
+	{	const url          = typeof(input)=='string' || input instanceof URL ? input : input.url;
+		const inputRequest = typeof(input)=='string' || input instanceof URL ? undefined : input;
 		const cache          = init?.cache          ?? inputRequest?.cache;
 		const credentials    = init?.credentials    ?? inputRequest?.credentials;
 		const headers        = init?.headers        ?? inputRequest?.headers;
@@ -79,8 +80,9 @@ export class SuperRequest extends Request
 		const referrer       = init?.referrer       ?? inputRequest?.referrer;
 		const referrerPolicy = init?.referrerPolicy ?? inputRequest?.referrerPolicy;
 		const signal         = init?.signal         ?? inputRequest?.signal;
+		const body           = init?.body!==undefined ? init.body : inputRequest?.body ?? null;
 		super
-		(	typeof(input)=='string' || input instanceof URL ? input : input.url,
+		(	url,
 			{	cache,
 				credentials,
 				headers,
@@ -95,10 +97,9 @@ export class SuperRequest extends Request
 				body: null,
 			}
 		);
-		const bodyInit = init?.body ?? (typeof(input)=='string' || input instanceof URL ? null : input.body);
-		this.#bodyInit = bodyInit;
+		this.#bodyInit = body;
 		this.#lengthLimit = options?.lengthLimit ?? Number.MAX_SAFE_INTEGER;
-		if (signal && (bodyInit instanceof ReadableStream || bodyInit instanceof Blob))
+		if (signal && (body instanceof ReadableStream || body instanceof Blob))
 		{	signal.addEventListener
 			(	'abort',
 				() =>
@@ -106,13 +107,13 @@ export class SuperRequest extends Request
 					if (this.#bodyStream)
 					{	toCancel = this.#bodyStream;
 					}
-					else if (bodyInit instanceof ReadableStream)
+					else if (body instanceof ReadableStream)
 					{	this.#bodyInit = null;
-						toCancel = bodyInit;
+						toCancel = body;
 					}
 					else
 					{	this.#bodyInit = null;
-						toCancel = bodyInit.stream();
+						toCancel = body.stream();
 					}
 					toCancel.cancel(new CancelError('The operation was aborted')).catch(() => {});
 				}
