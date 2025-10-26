@@ -159,3 +159,49 @@ Deno.test
 		assertEquals(all, {'coo-1': '', 'coo-2': 'val <2>.', 'coo-3': 'val <3>'});
 	}
 );
+
+Deno.test
+(	'Cookies: toString',
+	() =>
+	{	// Empty cookies
+		let cookies = new SuperCookies();
+		assertEquals(cookies.toString(), '');
+
+		// Single cookie
+		cookies = new SuperCookies('name=value');
+		assertEquals(cookies.toString(), 'name=value');
+
+		// Multiple cookies
+		cookies = new SuperCookies('coo-1=val1; coo-2=val2');
+		assertEquals(cookies.toString(), 'coo-1=val1; coo-2=val2');
+
+		// Cookies with special characters (< and > are allowed in values, but spaces are not)
+		cookies = new SuperCookies();
+		cookies.set('name', 'val <1>');
+		assertEquals(cookies.toString(), 'name=val%20<1>');
+
+		// Unicode cookies
+		cookies = new SuperCookies();
+		cookies.set('א', 'ב');
+		assertEquals(cookies.toString(), '%D7%90=%D7%91');
+
+		// Mixed valid and invalid characters ([ and ] forbidden in names but allowed in values)
+		cookies = new SuperCookies();
+		cookies.set('coo[1]', 'val[1]');
+		assertEquals(cookies.toString(), 'coo%5B1%5D=val[1]');
+
+		// Multiple cookies with encoding
+		cookies = new SuperCookies('coo-1= val <1> ; coo-2=val <2>.');
+		assertEquals(cookies.toString(), 'coo-1=%20val%20<1>%20; coo-2=val%20<2>.');
+
+		// Empty value
+		cookies = new SuperCookies();
+		cookies.set('name', '');
+		assertEquals(cookies.toString(), 'name=');
+
+		// Cookie with forbidden characters in value (quotes, comma, semicolon, backslash)
+		cookies = new SuperCookies();
+		cookies.set('test', 'a"b,c;d\\e');
+		assertEquals(cookies.toString(), 'test=a%22b%2Cc%3Bd%5Ce');
+	}
+);

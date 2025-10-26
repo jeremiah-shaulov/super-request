@@ -116,6 +116,16 @@ export class SuperCookies extends Map<string, string>
 	applyToResponse(response: {headers?: Headers|HeadersInit})
 	{	applyToResponse(response, this.#orig, this, this.#options);
 	}
+
+	override toString()
+	{	let str = '';
+		let delim = '';
+		for (const [name, value] of this)
+		{	str += `${delim}${encodeCookie(name, COOKIE_NAME_MASK)}=${encodeCookie(value, COOKIE_VALUE_MASK)}`;
+			delim = '; ';
+		}
+		return str;
+	}
 }
 
 function parseCookieHeader(cookieHeader: string|null|undefined, cookiesOrig: Map<string, {rawName: string, value: string}>, cookies: Map<string, string>)
