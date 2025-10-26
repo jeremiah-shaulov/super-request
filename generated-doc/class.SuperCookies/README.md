@@ -3,7 +3,7 @@
 [Documentation Index](../README.md)
 
 ```ts
-import {SuperCookies} from "jsr:@shaulov/super-request@0.1.4"
+import {SuperCookies} from "jsr:@shaulov/super-request@0.1.5"
 ```
 
 A Cookies implementation that can parse and set cookies in HTTP headers.
@@ -14,10 +14,11 @@ Then you can apply the changes to the "Set-Cookie" headers of an HTTP response b
 ## This class has
 
 - [constructor](#-constructorcookieheader-string--null)
-- 3 methods:
+- 4 methods:
 [set](#-override-setname-string-value-string-options-cookieoptions-this),
 [delete](#-override-deletekey-string-boolean),
-[applyToResponse](#-applytoresponseresponse-headers-headers--headersinit-void)
+[applyToResponse](#-applytoresponseresponse-headers-headers--headersinit-void),
+[toString](#-override-tostring-string)
 - base class
 
 
@@ -64,6 +65,16 @@ Then you can apply the changes to the "Set-Cookie" headers of an HTTP response b
 > 🎚️ Parameter **response**:
 > 
 > An object containing the HTTP response headers. If the `headers` property is not present, it will be created.
+
+
+
+#### ⚙ `override` toString(): `string`
+
+> Returns the string representation of the cookies, suitable for "Cookie" header.
+> 
+> ✔️ Return value:
+> 
+> A string containing the cookies in "name=value; name2=value2" format.
 
 
 

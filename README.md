@@ -1,6 +1,6 @@
 <!--
 	This file is generated with the following command:
-	deno run --allow-all https://raw.githubusercontent.com/jeremiah-shaulov/tsa/v0.0.55/tsa.ts doc-md --outFile=README.md --outUrl=https://raw.githubusercontent.com/jeremiah-shaulov/super-request/0.1.4/README.md --importUrl=jsr:@shaulov/super-request@0.1.4 mod.ts
+	deno run --allow-all https://raw.githubusercontent.com/jeremiah-shaulov/tsa/v0.0.57/tsa.ts doc-md --outFile=README.md --outUrl=https://raw.githubusercontent.com/jeremiah-shaulov/super-request/0.1.5/README.md --importUrl=jsr:@shaulov/super-request@0.1.5 mod.ts
 -->
 
 # SuperRequest Module
@@ -45,3 +45,36 @@ A Map-based cookie management class that:
 
 ### [SuperFile](generated-doc/class.SuperFile/README.md) and [SuperBlob](generated-doc/class.SuperBlob/README.md)
 File and Blob implementations that use ReadableStreams as data sources.
+
+## Typical usage with deno
+
+```ts
+async function handleRequest(request: SuperRequest, info: Deno.ServeHandlerInfo)
+{	return new Response('Content', {headers: {'content-type': 'text/plain'}});
+}
+
+const ac = new AbortController;
+Deno.addSignalListener('SIGTERM', () => ac.abort());
+Deno.addSignalListener('SIGINT', () => ac.abort());
+Deno.addSignalListener('SIGQUIT', () => ac.abort());
+
+const server = Deno.serve
+(	{	signal: ac.signal,
+	},
+	async (request, info) =>
+	{	try
+		{	const response = await handleRequest(new SuperRequest(request), info);
+			if (response)
+			{	return response;
+			}
+		}
+		catch (e)
+		{	if (!(e instanceof Deno.errors.NotFound))
+			{	return new Response(e instanceof Error ? e.message : e+'', {status: 500, headers: {'content-type': 'text/plain'}});
+			}
+		}
+		return new Response('Not found', {status: 404, headers: {'content-type': 'text/plain'}});
+	}
+);
+await server.finished;
+```

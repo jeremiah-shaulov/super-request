@@ -3,7 +3,7 @@
 [Documentation Index](../README.md)
 
 ```ts
-import {SuperRequest} from "jsr:@shaulov/super-request@0.1.4"
+import {SuperRequest} from "jsr:@shaulov/super-request@0.1.5"
 ```
 
 This class extends the standard Request class to add additional features.
@@ -85,9 +85,28 @@ If the request body exceeds this limit, the body stream is cancelled, and a [Too
 
 #### 📄 `get` cookies(): [SuperCookies](../class.SuperCookies/README.md)
 
+> Provides access to cookies from the "Cookie" header, parsed into a SuperCookies object.
+> You can read, modify, add, or delete cookies, and then apply the changes to a Response object.
+
 
 
 #### ⚙ files(): AsyncGenerator\<\{name: `string`, value: File}, `void`, `unknown`>
+
+> Yields file uploads from a "multipart/form-data" request body.
+> 
+> Each yielded object contains the field name and a File object with a readable stream.
+> You must consume (read completely) or cancel each file stream before the next file can be yielded.
+> This ensures efficient streaming without keeping entire files in memory.
+> 
+> Non-file fields are automatically collected and will be available via [formData()](../class.SuperRequest/README.md#-override-formdata-promiseformdata) or [json()](../class.SuperRequest/README.md#-override-json-promiseany) methods.
+> 
+> ```ts
+> for await (const {name, value} of request.files())
+> {	console.log(`Uploading ${value.name} to field ${name}`);
+> 	using file = Deno.open('/tmp/' + value.name, {write: true, create: true});
+> 	await value.stream().pipeTo(file.writable);
+> }
+> ```
 
 
 

@@ -3,8 +3,10 @@
 [Documentation Index](../README.md)
 
 ```ts
-import {SuperRequestOptions} from "jsr:@shaulov/super-request@0.1.4"
+import {SuperRequestOptions} from "jsr:@shaulov/super-request@0.1.5"
 ```
+
+Configuration options for SuperRequest behavior.
 
 ## This type has
 
@@ -12,6 +14,10 @@ import {SuperRequestOptions} from "jsr:@shaulov/super-request@0.1.4"
 
 
 #### 📄 lengthLimit?: `number`
+
+> Default value: `Number.MAX_SAFE_INTEGER`
+> 
+> Maximum allowed size of the request body in bytes. If exceeded, a TooBigError will be thrown.
 
 
 
