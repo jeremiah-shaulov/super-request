@@ -1,6 +1,6 @@
 <!--
 	This file is generated with the following command:
-	deno run --allow-all https://raw.githubusercontent.com/jeremiah-shaulov/tsa/v0.0.57/tsa.ts doc-md --outFile=README.md --outUrl=https://raw.githubusercontent.com/jeremiah-shaulov/super-request/0.1.5/README.md --importUrl=jsr:@shaulov/super-request@0.1.5 mod.ts
+	deno run --allow-all https://raw.githubusercontent.com/jeremiah-shaulov/tsa/v0.0.57/tsa.ts doc-md --outFile=README.md --outUrl=https://raw.githubusercontent.com/jeremiah-shaulov/super-request/0.1.7/README.md --importUrl=jsr:@shaulov/super-request@0.1.7 mod.ts
 -->
 
 # SuperRequest Module

@@ -3,7 +3,7 @@
 [Documentation Index](../README.md)
 
 ```ts
-import {SuperRequestOptions} from "jsr:@shaulov/super-request@0.1.5"
+import {SuperRequestOptions} from "jsr:@shaulov/super-request@0.1.7"
 ```
 
 Configuration options for SuperRequest behavior.

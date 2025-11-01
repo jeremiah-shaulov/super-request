@@ -3,7 +3,7 @@
 [Documentation Index](../README.md)
 
 ```ts
-import {SuperRequest} from "jsr:@shaulov/super-request@0.1.5"
+import {SuperRequest} from "jsr:@shaulov/super-request@0.1.7"
 ```
 
 This class extends the standard Request class to add additional features.

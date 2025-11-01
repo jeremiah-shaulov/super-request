@@ -3,7 +3,7 @@
 [Documentation Index](../README.md)
 
 ```ts
-import {SuperCookies} from "jsr:@shaulov/super-request@0.1.5"
+import {SuperCookies} from "jsr:@shaulov/super-request@0.1.7"
 ```
 
 A Cookies implementation that can parse and set cookies in HTTP headers.
