@@ -11,6 +11,9 @@ const RE_HAS_SCHEME = /^[a-zA-Z][a-zA-Z0-9.+-]*:\/\//;
 const encoder = new TextEncoder;
 const decoder = new TextDecoder;
 
+// deno-lint-ignore no-explicit-any
+type Any = any;
+
 /**	An object that has a `read(buffer)` method for reading data into a buffer, similar to Deno's Reader interface.
 	This allows using objects like `Deno.FsFile` or `Deno.TcpConn` as request body sources.
 	The optional `close()` method will be called when the stream is finished or cancelled.
@@ -26,7 +29,7 @@ type SuperBodyInit = BodyInit | ReaderSource;
 
 /**	Initialization options for SuperRequest, extending standard RequestInit and accepting SuperBodyInit for the body.
  **/
-export type SuperRequestInit = Omit<RequestInit, 'body'> & {body?: SuperBodyInit|null};
+export type SuperRequestInit = Omit<RequestInit, 'body'> & {body?: SuperBodyInit|null, duplex?: 'half'};
 
 /**	Configuration options for SuperRequest behavior.
  **/
@@ -84,6 +87,7 @@ export class SuperRequest extends Request
 		const inputRequest = typeof(input)=='string' || input instanceof URL ? undefined : input;
 		const cache          = init?.cache          ?? inputRequest?.cache;
 		const credentials    = init?.credentials    ?? inputRequest?.credentials;
+		const duplex         = init?.duplex         ?? (inputRequest as Any)?.duplex; // TODO: remove 'as Any' when Deno.Request supports 'duplex'
 		const headers        = init?.headers        ?? inputRequest?.headers;
 		const integrity      = init?.integrity      ?? inputRequest?.integrity;
 		const keepalive      = init?.keepalive      ?? inputRequest?.keepalive;
@@ -94,22 +98,22 @@ export class SuperRequest extends Request
 		const referrerPolicy = init?.referrerPolicy ?? inputRequest?.referrerPolicy;
 		const signal         = init?.signal         ?? inputRequest?.signal;
 		const body           = init?.body!==undefined ? init.body : inputRequest?.body ?? null;
-		super
-		(	url,
-			{	cache,
-				credentials,
-				headers,
-				integrity,
-				keepalive,
-				method,
-				mode,
-				redirect,
-				referrer,
-				referrerPolicy,
-				signal,
-				body: null,
-			}
-		);
+		const superInit =
+		{	cache,
+			credentials,
+			duplex,
+			headers,
+			integrity,
+			keepalive,
+			method,
+			mode,
+			redirect,
+			referrer,
+			referrerPolicy,
+			signal,
+			body: null,
+		};
+		super(url, superInit);
 		this.#bodyInit = body;
 		this.#lengthLimit = options?.lengthLimit ?? Number.MAX_SAFE_INTEGER;
 		if (signal && (body instanceof ReadableStream || body instanceof Blob))
