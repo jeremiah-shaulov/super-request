@@ -3,7 +3,7 @@
 [Documentation Index](../README.md)
 
 ```ts
-import {SuperFile} from "jsr:@shaulov/super-request@0.1.7"
+import {SuperFile} from "jsr:@shaulov/super-request@0.1.8"
 ```
 
 A File implementation that uses a ReadableStream as the data source.

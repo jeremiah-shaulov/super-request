@@ -3,7 +3,7 @@
 [Documentation Index](../README.md)
 
 ```ts
-import {SuperCookies} from "jsr:@shaulov/super-request@0.1.7"
+import {SuperCookies} from "jsr:@shaulov/super-request@0.1.8"
 ```
 
 A Cookies implementation that can parse and set cookies in HTTP headers.
@@ -50,7 +50,7 @@ Then you can apply the changes to the "Set-Cookie" headers of an HTTP response b
 > 
 > 🎚️ Parameter **options**:
 > 
-> Optional cookie parameters (expires, maxAge, domain, path, secure, httpOnly, sameSite).
+> Optional cookie parameters (expires, maxAge, domain, path, secure, httpOnly, sameSite, partitioned).
 
 
 

@@ -3,7 +3,7 @@
 [Documentation Index](../README.md)
 
 ```ts
-import {SuperUrl} from "jsr:@shaulov/super-request@0.1.7"
+import {SuperUrl} from "jsr:@shaulov/super-request@0.1.8"
 ```
 
 This class extends the standard URL class by adding a `searchParamsJson` property,
@@ -44,10 +44,10 @@ which contains the parsed URL parameters as a JavaScript object.
 > 
 > ```ts
 > // To download and run this example:
-> // curl 'https://raw.githubusercontent.com/jeremiah-shaulov/super-request/0.1.7/generated-doc/class.SuperUrl/README.md' | perl -ne 's/^> //; $y=$1 if /^```(.)?/; print $_ if $y&&$m; $m=$y&&$m+/<example-48ql>/' > /tmp/example-48ql.ts
+> // curl 'https://raw.githubusercontent.com/jeremiah-shaulov/super-request/0.1.8/generated-doc/class.SuperUrl/README.md' | perl -ne 's/^> //; $y=$1 if /^```(.)?/; print $_ if $y&&$m; $m=$y&&$m+/<example-48ql>/' > /tmp/example-48ql.ts
 > // deno run /tmp/example-48ql.ts
 > 
-> import {SuperUrl} from 'jsr:@shaulov/super-request@0.1.7';
+> import {SuperUrl} from 'jsr:@shaulov/super-request@0.1.8';
 > import {assertEquals} from 'jsr:@std/assert@1.0.15/equals';
 > 
 > const url = new SuperUrl('https://example.com/path?id=1&items[]=a&items[]=b&user[profile][name]=John');

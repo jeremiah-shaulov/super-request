@@ -3,19 +3,20 @@
 [Documentation Index](../README.md)
 
 ```ts
-import {CookieOptions} from "jsr:@shaulov/super-request@0.1.7"
+import {CookieOptions} from "jsr:@shaulov/super-request@0.1.8"
 ```
 
 ## This type has
 
-- 7 properties:
+- 8 properties:
 [expires](#-expires-date),
 [maxAge](#-maxage-number),
 [domain](#-domain-string),
 [path](#-path-string),
 [secure](#-secure-boolean),
 [httpOnly](#-httponly-boolean),
-[sameSite](#-samesite-string)
+[sameSite](#-samesite-string),
+[partitioned](#-partitioned-boolean)
 
 
 #### 📄 expires?: Date
@@ -45,6 +46,10 @@ import {CookieOptions} from "jsr:@shaulov/super-request@0.1.7"
 
 
 #### 📄 sameSite?: `string`
+
+
+
+#### 📄 partitioned?: `boolean`
 
 
 

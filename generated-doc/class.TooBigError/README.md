@@ -3,7 +3,7 @@
 [Documentation Index](../README.md)
 
 ```ts
-import {TooBigError} from "jsr:@shaulov/super-request@0.1.7"
+import {TooBigError} from "jsr:@shaulov/super-request@0.1.8"
 ```
 
 ## This class has
