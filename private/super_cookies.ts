@@ -53,6 +53,7 @@ export type CookieOptions =
 	secure?: boolean,
 	httpOnly?: boolean,
 	sameSite?: string,
+	partitioned?: boolean,
 };
 
 /**	@category Errors
@@ -86,7 +87,7 @@ export class SuperCookies extends Map<string, string>
 
 		@param name The cookie name.
 		@param value The cookie value.
-		@param options Optional cookie parameters (expires, maxAge, domain, path, secure, httpOnly, sameSite).
+		@param options Optional cookie parameters (expires, maxAge, domain, path, secure, httpOnly, sameSite, partitioned).
 	 **/
 	override set(name: string, value: string, options?: CookieOptions)
 	{	super.set(name, value);
@@ -190,7 +191,7 @@ function applyToResponse(response: {headers?: Headers|HeadersInit}, cookiesOrig:
 			let str = `${encodeCookie(name, COOKIE_NAME_MASK)}=${encodeCookie(value, COOKIE_VALUE_MASK)}`;
 			const option = options.get(name);
 			if (option)
-			{	let {expires, maxAge, domain, path, secure, httpOnly, sameSite} = option;
+			{	let {expires, maxAge, domain, path, secure, httpOnly, sameSite, partitioned} = option;
 				if (!value)
 				{	str += `; Expires=Sat, 01 Jan 2000 00:00:00 GMT; Max-Age=0`;
 				}
@@ -219,6 +220,9 @@ function applyToResponse(response: {headers?: Headers|HeadersInit}, cookiesOrig:
 				}
 				if (httpOnly)
 				{	str += `; HttpOnly`;
+				}
+				if (partitioned)
+				{	str += `; Partitioned`;
 				}
 				if (sameSite)
 				{	str += `; SameSite=${sameSite}`;
