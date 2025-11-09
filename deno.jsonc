@@ -1,5 +1,5 @@
 {	"name": "@shaulov/super-request",
-	"version": "0.1.7",
+	"version": "0.1.8",
 	"license": "MIT",
 	"exports": "./mod.ts"
 }
