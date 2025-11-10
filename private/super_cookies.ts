@@ -170,7 +170,7 @@ function applyToResponse(response: {headers?: Headers|HeadersInit}, cookiesOrig:
 			{	headers = new Headers(response.headers && Object.entries(response.headers));
 				response.headers = headers;
 			}
-			headers.append('set-cookie', `${rawName}=; Path=/; Expires=Sat, 01 Jan 2000 00:00:00 GMT`);
+			headers.append('set-cookie', `${rawName}=; Expires=Sat, 01 Jan 2000 00:00:00 GMT; Max-Age=0; Path=/`);
 		}
 	}
 	for (const [name, value] of cookies)
